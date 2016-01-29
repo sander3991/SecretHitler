@@ -14,6 +14,7 @@ namespace SecretHitler.Views
 {
     public partial class Chat : UserControl
     {
+        public IButtonControl SendBtn { get { return sendBtn; } }
         private GameState game;
         public GameState GameState
         {
@@ -60,7 +61,7 @@ namespace SecretHitler.Views
             else
             {
                 outputText.SelectionColor = Color.DarkBlue;
-                outputText.AppendText($"{status}{Environment.NewLine}");
+                AppendLine(status);
                 outputText.SelectionColor = Color.Black;
             }
         }
@@ -69,7 +70,10 @@ namespace SecretHitler.Views
             if (outputText.InvokeRequired)
                 Invoke(new SetTextDelegate(AppendLine), input);
             else
+            {
                 outputText.AppendText($"{input}{Environment.NewLine}");
+                outputText.ScrollToCaret();
+            }
         }
 
         private void sendBtn_Click(object sender, EventArgs e)
@@ -88,8 +92,8 @@ namespace SecretHitler.Views
 
         private void inputText_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '\r')
-                sendBtn_Click(null, null);
+            /*if (e.KeyChar == '\r')
+                sendBtn_Click(null, null);*/
         }
 
         private void Chat_Load(object sender, EventArgs e)

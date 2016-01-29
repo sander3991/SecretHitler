@@ -32,7 +32,7 @@ namespace SecretHitler.Networking
             ipEndPoint = new IPEndPoint(address, SecretHitlerGame.DEFAULTPORT);
             IPEndPoint clientPoint = new IPEndPoint(IPAddress.Any, SecretHitlerGame.DEFAULTPORT + 1);
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            socket.Bind(clientPoint);
+            //socket.Bind(clientPoint);
             ConfigureSocket(socket);
             ReceiveHandler = new ReceiveMsgHandler(this);
             socket.Connect(ipEndPoint);

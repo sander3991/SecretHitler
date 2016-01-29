@@ -44,6 +44,7 @@ namespace SecretHitler.Views
 
         private void Game_Load(object sender, EventArgs e)
         {
+            AcceptButton = chat1.SendBtn;
         }
     }
 }

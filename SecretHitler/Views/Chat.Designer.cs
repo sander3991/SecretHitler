@@ -1,4 +1,6 @@
-﻿namespace SecretHitler.Views
+﻿using System.Windows.Forms;
+
+namespace SecretHitler.Views
 {
     partial class Chat
     {
@@ -92,5 +94,7 @@
         private System.Windows.Forms.Button sendBtn;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.RichTextBox outputText;
+
+        
     }
 }
