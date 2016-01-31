@@ -12,7 +12,7 @@ namespace SecretHitler.Objects
     {
         protected static readonly Size DEFAULTSIZE = new Size(600, 214);
         protected abstract Image Picture { get; }
-        public override void Draw(Graphics g)
+        public override void Draw(Graphics g, BitmapRotateType rotate = BitmapRotateType.None)
             => g.DrawImageUnscaled(Picture, DrawLocation);
     }
     class FascistBoard : Board

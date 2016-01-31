@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SecretHitler.Views;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -9,7 +10,6 @@ namespace SecretHitler.Objects
 {
     public abstract class GameObject
     {
-        public RotateFlipType Rotation { get; set; } = RotateFlipType.RotateNoneFlipNone;
         public Rectangle DrawLocation { get; set; }
         public Point Location
         {
@@ -27,6 +27,6 @@ namespace SecretHitler.Objects
             get { return DrawLocation.Size; }
             set { DrawLocation = new Rectangle(Location, value); }
         }
-        public abstract void Draw(Graphics g);
+        public abstract void Draw(Graphics g, BitmapRotateType rotate = BitmapRotateType.None);
     }
 }

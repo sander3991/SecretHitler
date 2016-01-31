@@ -43,7 +43,6 @@ namespace SecretHitler.Views
             this.inputText.Name = "inputText";
             this.inputText.Size = new System.Drawing.Size(380, 20);
             this.inputText.TabIndex = 2;
-            this.inputText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.inputText_KeyPress);
             // 
             // sendBtn
             // 

@@ -10,14 +10,14 @@ namespace SecretHitler.Objects
 {
     class CardNotHitler : Card
     {
-        private static Image BACK = Properties.Resources.Not_Hitler_confirmed_card_backcover.CutToSize(DEFAULTCARDSIZE);
-        private static Image FRONT = Properties.Resources.Not_Hitler_confirmed_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
-        public override Image Back
+        private static Bitmap BACK = Properties.Resources.Not_Hitler_confirmed_card_backcover.CutToSize(DEFAULTCARDSIZE);
+        private static Bitmap FRONT = Properties.Resources.Not_Hitler_confirmed_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
+        public override Bitmap Back
         {
             get { return BACK; }
         }
 
-        public override Image Front
+        public override Bitmap Front
         {
             get { return FRONT; }
         }

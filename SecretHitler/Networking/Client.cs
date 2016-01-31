@@ -18,13 +18,27 @@ namespace SecretHitler.Networking
         private Game game;
         private bool connected;
         private IPEndPoint ipEndPoint;
-        public string Name { get; set; }
+        private string username;
+        public string Name
+        {
+            get { return username; }
+            set
+            {
+                if(username != value)
+                {
+                    username = value;
+                    OnUsernameChanged?.Invoke(value);
+                }
+            }
+        }
+        public event Action<string> OnUsernameChanged;
         public static Client Instance { get; private set; }
         public ReceiveMsgHandler ReceiveHandler { get; private set; }
         public event Action<Client> OnConnected;
-        private Client(Game game)
+        private Client(Game game, string username = null)
         {
-            this.game = game;;
+            this.game = game;
+            this.username = username;
         }
 
         public void Connect(IPAddress address)
@@ -50,7 +64,8 @@ namespace SecretHitler.Networking
         }
 
         internal void RequestGameState()
-            => new SendMsgHandler(new NetworkObject(ServerCommands.GameState), this);
+            => new SendMsgHandler(new NetworkObject(ServerCommands.GetGameState), this);
+        
 
         private void ConfigureSocket(Socket socket)
         {
@@ -66,12 +81,16 @@ namespace SecretHitler.Networking
         private void ConfirmConnected(NetworkObject obj)
         {
             connected = true;
-            ReceiveHandler.OnReceive -= ConfirmConnected;
+            if(obj.Command == ServerCommands.OK)
+            {
+                Name = obj.Message;
+                ReceiveHandler.OnReceive -= ConfirmConnected;
+            }
         }
 
-        public static Client GetClient(Game game)
+        public static Client GetClient(Game game, string username)
         {
-            Instance = new Client(game);
+            Instance = new Client(game, username);
             return Instance;
         }
 
@@ -93,9 +112,20 @@ namespace SecretHitler.Networking
                     Thread.CurrentThread.Name = "Receive Message Handler";
                 while (client.socket.Connected)
                 {
-                    var receive = NetworkObject.Receive(client.socket);
+                    var receive = NetworkObjectDecoders.Receive(client.socket);
                     client.connected = true;
-                    OnReceive?.Invoke(receive);
+                    try
+                    {
+                        if (receive is NetworkMultipleObject)
+                            foreach (var msg in (receive as NetworkMultipleObject).Objects)
+                                OnReceive?.Invoke(msg);
+                        else
+                            OnReceive?.Invoke(receive);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                 }
             }
         }

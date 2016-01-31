@@ -25,8 +25,19 @@ namespace SecretHitler.Views
         public void InitializeState(GameState state)
         {
             this.state = state;
+            state.OnStart += DefineBoards;
             GeneratePlayAreas(state);
         }
+
+        private void DefineBoards(GameState obj)
+        {
+            lock (Objects)
+            {
+                Objects.AddFirst(new LiberalBoard() { Location = new Point(200, 200) });
+                Objects.AddFirst(new FascistBoard(obj.PlayerCount) { Location = new Point(200, 450) });
+            }
+        }
+
         private void GeneratePlayAreas(GameState state)
         {
             int horizontalSpacing = Width / 4;
@@ -40,12 +51,11 @@ namespace SecretHitler.Views
             int locationVertical = (offsetBottom - offsetTop - playerAreaWidth) / 2 + offsetTop;
             for (var i = 0; i < PlayerAreas.Length; i++)
             {
-                var area = i >= 8 ? new PlayAreaVertical(state, i + 1) : new PlayArea(state, i + 1);
+                var area = i >= 8 ? new PlayAreaVertical(state, i) : new PlayArea(state, i);
                 if (i < 8)
                     area.Location = new Point((i % 4) * horizontalSpacing + padding, i / 4 == 0 ? offsetBottom : 50);
                 else
                     area.Location = new Point(i == 8 ? paddingSide : Width - paddingSide - PlayArea.DEFAULTSIZE.Height, locationVertical);
-                area.Rotation = i < 4 ? RotateFlipType.RotateNoneFlipNone : (i < 8 ? RotateFlipType.Rotate180FlipNone : (i == 8 ? RotateFlipType.Rotate90FlipNone : RotateFlipType.Rotate270FlipNone));
                 Objects.AddLast(area);
                 PlayerAreas[i] = area;
             }
@@ -55,8 +65,9 @@ namespace SecretHitler.Views
         {
             base.OnPaint(e);
             var g = e.Graphics;
-            foreach (var obj in Objects)
-                obj.Draw(g);
+            lock(Objects)
+                foreach (var obj in Objects)
+                    obj.Draw(g);
         }
         private void Redraw(object sender, EventArgs e)
         {

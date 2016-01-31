@@ -25,7 +25,7 @@ namespace SecretHitler.Views
         public Game(ServerClientDialog dialog)
         {
             InitializeComponent();
-            var client = Client.GetClient(this);
+            var client = Client.GetClient(this, dialog.Username);
             client.Name = dialog.Username;
             Server server = null;
             if (!dialog.Join)
@@ -45,6 +45,21 @@ namespace SecretHitler.Views
         private void Game_Load(object sender, EventArgs e)
         {
             AcceptButton = chat1.SendBtn;
+            if(GameState.Server == null)
+            {
+                startBtn.Visible = false;
+            }
+        }
+
+        private void startBtn_Click(object sender, EventArgs e)
+        {
+            if(GameState.PlayerCount < 0) //TODO: Change to 5
+            {
+                startGameError.Text = "A minimum of 5 players is required to launch the game";
+                startGameError.Visible = true;
+                return;
+            }
+            GameState.Server.LaunchGame();
         }
     }
 }

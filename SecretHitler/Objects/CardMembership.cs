@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace SecretHitler.Objects
 {
-    abstract class CardMembership : Card
+    public abstract class CardMembership : Card
     {
-        private static Image BACK = Properties.Resources.membership_card_backcover.CutToSize(DEFAULTCARDSIZE);
+        private static Bitmap BACK = Properties.Resources.membership_card_backcover.CutToSize(DEFAULTCARDSIZE);
         public abstract bool IsFascist { get; }
-        public override Image Back
+        public override Bitmap Back
         {
             get
             {
@@ -20,10 +20,10 @@ namespace SecretHitler.Objects
             }
         }
     }
-    class CardMembershipLiberal : CardMembership
+    public class CardMembershipLiberal : CardMembership
     {
-        private static Image FRONT = Properties.Resources.membership_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.membership_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
+        public override Bitmap Front
         {
             get { return FRONT; }
         }
@@ -33,10 +33,10 @@ namespace SecretHitler.Objects
             get { return false; }
         }
     }
-    class CardMembershipFascist : CardMembership
+    public class CardMembershipFascist : CardMembership
     {
-        private static Image FRONT = Properties.Resources.membership_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.membership_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
+        public override Bitmap Front
         {
             get { return FRONT; }
         }
@@ -45,5 +45,11 @@ namespace SecretHitler.Objects
         {
             get { return true; }
         }
+    }
+    public class CardMembershipUnknown : CardMembership
+    {
+        private static Bitmap FRONT = Properties.Resources.membership_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 3);
+        public override Bitmap Front { get { return FRONT; } }
+        public override bool IsFascist { get { return false; } }
     }
 }

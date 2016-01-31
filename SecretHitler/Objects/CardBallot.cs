@@ -10,17 +10,17 @@ namespace SecretHitler.Objects
 {
     public abstract class CardBallot : Card
     {
-        private static Image BACK = Properties.Resources.ballot_card_backcover.CutToSize(DEFAULTCARDSIZE);
-        public sealed override Image Back
+        private static Bitmap BACK = Properties.Resources.ballot_card_backcover.CutToSize(DEFAULTCARDSIZE);
+        public sealed override Bitmap Back
         {
             get { return BACK; }
         }
         public abstract bool Yes { get; }
     }
-    public class BallotCardYes : CardBallot
+    public class CardBallotYes : CardBallot
     {
-        private static Image FRONT = Properties.Resources.ballot_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.ballot_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
+        public override Bitmap Front
         {
             get { return FRONT; }
         }
@@ -30,10 +30,10 @@ namespace SecretHitler.Objects
             get { return true; }
         }
     }
-    public class BallotCardNo : CardBallot
+    public class CardBallotNo : CardBallot
     {
-        private static Image FRONT = Properties.Resources.ballot_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.ballot_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
+        public override Bitmap Front
         {
             get { return FRONT; }
         }

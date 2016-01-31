@@ -28,9 +28,32 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.startBtn = new System.Windows.Forms.Button();
+            this.startGameError = new System.Windows.Forms.Label();
             this.chat1 = new SecretHitler.Views.Chat();
             this.gamePanel1 = new SecretHitler.Views.GamePanel();
             this.SuspendLayout();
+            // 
+            // startBtn
+            // 
+            this.startBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.startBtn.Location = new System.Drawing.Point(809, 853);
+            this.startBtn.Name = "startBtn";
+            this.startBtn.Size = new System.Drawing.Size(161, 61);
+            this.startBtn.TabIndex = 2;
+            this.startBtn.Text = "Start Game";
+            this.startBtn.UseVisualStyleBackColor = true;
+            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
+            // 
+            // startGameError
+            // 
+            this.startGameError.AutoSize = true;
+            this.startGameError.ForeColor = System.Drawing.Color.Red;
+            this.startGameError.Location = new System.Drawing.Point(794, 917);
+            this.startGameError.Name = "startGameError";
+            this.startGameError.Size = new System.Drawing.Size(0, 13);
+            this.startGameError.TabIndex = 3;
+            this.startGameError.Visible = false;
             // 
             // chat1
             // 
@@ -52,10 +75,13 @@
             // Game
             // 
             this.ClientSize = new System.Drawing.Size(1264, 985);
+            this.Controls.Add(this.startGameError);
+            this.Controls.Add(this.startBtn);
             this.Controls.Add(this.chat1);
             this.Controls.Add(this.gamePanel1);
             this.Name = "Game";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -63,6 +89,8 @@
 
         private Chat chat1;
         private GamePanel gamePanel1;
+        private System.Windows.Forms.Button startBtn;
+        private System.Windows.Forms.Label startGameError;
     }
 }
 

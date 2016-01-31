@@ -8,25 +8,26 @@ using System.Threading.Tasks;
 
 namespace SecretHitler.Objects
 {
-    abstract class SecretRole : Card
+    public abstract class CardSecretRole : Card
     {
-        private static Image BACK = Properties.Resources.role_cards_backcover.CutToSize(DEFAULTCARDSIZE);
+        public abstract int ID { get; protected set; }
+        private static Bitmap BACK = Properties.Resources.role_cards_backcover.CutToSize(DEFAULTCARDSIZE);
         public abstract bool IsFascist { get; }
         public abstract bool IsHitler { get; }
-        public override Image Back
+        public override Bitmap Back
         {
             get { return BACK; }
         }
     }
-    class SecretRoleFascist : SecretRole
+    public class CardSecretRoleFascist : CardSecretRole
     {
-        private int ID = -1;
-        private static Image[] FRONTS;
-        static SecretRoleFascist()
+        public override int ID { get; protected set; } = -1;
+        private static Bitmap[] FRONTS;
+        static CardSecretRoleFascist()
         {
             var bmp = Properties.Resources.role_cards;
             int spriteWidth = 4, spriteHeight = 3;
-            FRONTS = new Image[]
+            FRONTS = new Bitmap[]
             {
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 0),
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 1),
@@ -34,7 +35,7 @@ namespace SecretHitler.Objects
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 3)
             };
         }
-        public override Image Front
+        public override Bitmap Front
         {
             get
             {
@@ -55,22 +56,22 @@ namespace SecretHitler.Objects
             }
         }
 
-        public SecretRoleFascist(int id)
+        public CardSecretRoleFascist(int id)
         {
             if (id < 0 || id >= FRONTS.Length)
                 throw new ArgumentException("Invalid ID given to fascist role.", nameof(id));
             ID = id;
         }
     }
-    class SecretRoleLiberal : SecretRole
+    public class CardSecretRoleLiberal : CardSecretRole
     {
-        private int ID = -1;
-        private static Image[] FRONTS;
-        static SecretRoleLiberal()
+        public override int ID { get; protected set; } = -1;
+        private static Bitmap[] FRONTS;
+        static CardSecretRoleLiberal()
         {
             var bmp = Properties.Resources.role_cards;
             int spriteWidth = 4, spriteHeight = 3;
-            FRONTS = new Image[]
+            FRONTS = new Bitmap[]
             {
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 4),
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 5),
@@ -80,7 +81,7 @@ namespace SecretHitler.Objects
                 bmp.FromSprite(DEFAULTCARDSIZE, spriteWidth, spriteHeight, 9)
             };
         }
-        public override Image Front
+        public override Bitmap Front
         {
             get { return FRONTS[ID]; }
         }
@@ -95,11 +96,20 @@ namespace SecretHitler.Objects
             get { return false; }
         }
 
-        public SecretRoleLiberal(int id)
+        public CardSecretRoleLiberal(int id)
         {
             if (id < 0 || id >= FRONTS.Length)
-                throw new ArgumentException("Invalid ID given to fascist role.", nameof(id));
+                throw new ArgumentException("Invalid ID given to liberal role.", nameof(id));
             ID = id;
         }
+    }
+
+    public class CardSecretRoleUnknown : CardSecretRole
+    {
+        private static Bitmap FRONT = Properties.Resources.role_cards.FromSprite(DEFAULTCARDSIZE, 4, 3, 11);
+        public override Bitmap Front { get { return FRONT; } }
+        public override int ID { get { return -1; } protected set { } }
+        public override bool IsFascist { get { return false; } }
+        public override bool IsHitler { get { return false; } }
     }
 }

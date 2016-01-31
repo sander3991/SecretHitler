@@ -10,17 +10,17 @@ namespace SecretHitler.Objects
 {
     abstract class CardPolicy : Card
     {
-        private static Image BACK = Properties.Resources.policy_cards_backcover.CutToSize(DEFAULTCARDSIZE);
+        private static Bitmap BACK = Properties.Resources.policy_cards_backcover.CutToSize(DEFAULTCARDSIZE);
         public abstract bool IsFascist { get; }
-        public override Image Back
+        public override Bitmap Back
         {
             get { return BACK; }
         }
     }
     class CardPolicyFascist : CardPolicy
     {
-        private static Image FRONT = Properties.Resources.policy_cards_high_contrast.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.policy_cards_high_contrast.FromSprite(DEFAULTCARDSIZE, 2, 2, 1);
+        public override Bitmap Front
         {
             get
             {
@@ -35,8 +35,8 @@ namespace SecretHitler.Objects
     }
     class CardPolicyLiberal : CardPolicy
     {
-        private static Image FRONT = Properties.Resources.policy_cards_high_contrast.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
-        public override Image Front
+        private static Bitmap FRONT = Properties.Resources.policy_cards_high_contrast.FromSprite(DEFAULTCARDSIZE, 2, 2, 0);
+        public override Bitmap Front
         {
             get
             {

@@ -17,7 +17,7 @@ namespace SecretHitler.Objects
             set { throw new InvalidOperationException("You cannot change the size of a Placard"); }
         }
         public abstract Image Picture { get; }
-        public override void Draw(Graphics g)
+        public override void Draw(Graphics g, BitmapRotateType type = BitmapRotateType.None)
         {
             g.DrawImageUnscaled(Picture, DrawLocation);
         }

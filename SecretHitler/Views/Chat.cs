@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SecretHitler.Networking;
 using SecretHitler.Logic;
+using SecretHitler.Objects;
 
 namespace SecretHitler.Views
 {
@@ -22,26 +23,40 @@ namespace SecretHitler.Views
             {
                 game = value;
                 game.Client.ReceiveHandler.OnReceive += AddText;
+                game.Client.OnUsernameChanged += UsernameChanged;
             }
         }
+
+        private void UsernameChanged(string username)
+            => AppendLine($"Your username has been changed by the server into {username}");
 
         private void AddText(NetworkObject obj)
         {
             switch (obj.Command)
             {
                 case ServerCommands.ReceiveMessage:
-                    AppendLine(obj.Message);
+                    AddPlayerMsg(obj as NetworkMessageObject);
                     break;
                 case ServerCommands.PlayerConnected:
-                    AppendStatusMessage($"Player [{obj.Message}] has connected.");
+                    AppendStatusMessage($"Player [{((NetworkNewPlayerObject)obj).Player.Name}] has connected.");
                     break;
                 case ServerCommands.PlayerDisconnected:
-                    AppendStatusMessage($"Player [{obj.Message}] has disconnected");
+                    AppendStatusMessage($"Player [{((NetworkNewPlayerObject)obj).Player.Name}] has disconnected");
+                    break;
+                case ServerCommands.AnnounceCard:
+                    AppendStatusMessage("The server has dealt the cards");
+                    var cardObj = obj as NetworkCardObject;
+                    foreach(var card in cardObj.Cards)
+                        if(card is CardSecretRole)
+                        {
+                            var role = card as CardSecretRole;
+                            AppendStatusMessage($"You are a {(role.IsFascist ? "Fascist" : "Liberal")} and you are {(role.IsHitler ? string.Empty : "not")} hitler");
+                            break;
+                        }
                     break;
             }
         }
 
-        private delegate void SetTextDelegate(string text);
         public Chat()
         {
             InitializeComponent();
@@ -54,10 +69,35 @@ namespace SecretHitler.Views
             inputText.Enabled = true;
             sendBtn.Enabled = true;
         }
+        private void AnnouncePlayerCard(CardSecretRole role)
+        {
+            if (outputText.InvokeRequired)
+                Invoke(new Action<CardSecretRole>(AnnouncePlayerCard), role);
+            else
+            {
+                Append("You are a ");
+                outputText.SelectionColor = role.IsFascist ? Color.Red : Color.LightBlue;
+                Append(role.IsFascist ? "Fascist" : "Liberal");
+                AppendLine($" and you are {(role.IsHitler ? string.Empty : "not")} Hitler");
+            }
+        }
+        private void AddPlayerMsg(NetworkMessageObject obj)
+        {
+            if (outputText.InvokeRequired)
+                Invoke(new Action<NetworkMessageObject>(AddPlayerMsg), obj);
+            else
+            {
+                Append("[");
+                outputText.SelectionColor = Color.DarkBlue;
+                Append(obj.Username);
+                outputText.SelectionColor = Color.Black;
+                AppendLine($"]: {obj.Message}");
+            }
+        }
         public void AppendStatusMessage(string status)
         {
             if (outputText.InvokeRequired)
-                Invoke(new SetTextDelegate(AppendStatusMessage), status);
+                Invoke(new Action<string>(AppendStatusMessage), status);
             else
             {
                 outputText.SelectionColor = Color.DarkBlue;
@@ -68,13 +108,26 @@ namespace SecretHitler.Views
         public void AppendLine(string input)
         {
             if (outputText.InvokeRequired)
-                Invoke(new SetTextDelegate(AppendLine), input);
+                Invoke(new Action<string>(AppendLine), input);
             else
             {
-                outputText.AppendText($"{input}{Environment.NewLine}");
+                Append(input);
+                AppendNewLine();
                 outputText.ScrollToCaret();
             }
         }
+        public void Append(string input)
+        {
+            if (outputText.InvokeRequired)
+                Invoke(new Action<string>(Append), input);
+            else
+            {
+                outputText.AppendText(input);
+                outputText.ScrollToCaret();
+            }
+
+        }
+        public void AppendNewLine() => outputText.AppendText(Environment.NewLine);
 
         private void sendBtn_Click(object sender, EventArgs e)
         {
@@ -88,12 +141,6 @@ namespace SecretHitler.Views
                 Invoke(new Action(ClearText));
             else
                 inputText.Clear();
-        }
-
-        private void inputText_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            /*if (e.KeyChar == '\r')
-                sendBtn_Click(null, null);*/
         }
 
         private void Chat_Load(object sender, EventArgs e)
