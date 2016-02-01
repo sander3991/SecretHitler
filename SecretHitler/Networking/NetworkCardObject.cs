@@ -34,7 +34,7 @@ namespace SecretHitler.Networking
                 var cardObj = new NetworkCardObject();
                 DecodeHeader(cardObj, bytes);
                 List<Card> cards = new List<Card>();
-                for(var i = CONTENTINDEX; bytes[i] != 0; i++)
+                for(var i = CONTENTINDEX; HasByte(bytes, i); i++)
                     cards.Add(bytes[i].ToCard());
                 cardObj.Cards = cards.ToArray();
                 return cardObj;

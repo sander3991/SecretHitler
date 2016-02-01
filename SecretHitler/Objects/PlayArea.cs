@@ -12,10 +12,18 @@ namespace SecretHitler.Objects
     public class PlayArea : GameObject
     {
         public static readonly Size DEFAULTSIZE = new Size(288, 200);
-        private BitmapRotateType rotateBitmap;
+        public BitmapRotateType RotateType { get; private set; }
         protected GameState state;
         protected Player Player { get { return state.SeatedPlayers[ID]; } }
         protected int ID;
+        public Point PreviousPlacardLoc { get; private set; }
+        public Point CurrentPlacardLoc { get; private set; }
+
+        public static PlacardChancellor PlacardChancellor = new PlacardChancellor();
+        public static PlacardPrevChancellor PlacardPrevChancellor = new PlacardPrevChancellor();
+        public static PlacardPresident PlacardPresident = new PlacardPresident();
+        public static PlacardPrevPresident PlacardPrevPresident = new PlacardPrevPresident();
+
         public override Size Size
         {
             get { return DEFAULTSIZE; }
@@ -36,15 +44,18 @@ namespace SecretHitler.Objects
                 SystemFonts.DefaultFont,
                 Brushes.Black,
                 Location);
-            var hand = Player?.Hand;
-            if (hand != null)
+            if(Player != null)
             {
-                if (hand.Membership.Location == new Point(0, 0))
-                    DefineLocations(hand);
-                hand.Membership.Draw(g, rotateBitmap);
-                hand.Role.Draw(g, rotateBitmap);
-                hand.Yes.Draw(g, rotateBitmap);
-                hand.No.Draw(g, rotateBitmap);
+                var hand = Player.Hand;
+                if (hand != null)
+                {
+                    if (hand.Membership.Location == new Point(0, 0))
+                        DefineLocations(hand);
+                    hand.Membership.Draw(g, RotateType);
+                    hand.Role.Draw(g, RotateType);
+                    hand.Yes.Draw(g, RotateType);
+                    hand.No.Draw(g, RotateType);
+                }
             }
         }
         private void DefineLocations(PlayerHand hand)
@@ -56,7 +67,11 @@ namespace SecretHitler.Objects
                 hand.Role.Location = new Point(Location.X + Card.DEFAULTCARDSIZE.Width, yLoc);
                 hand.Yes.Location = new Point(Location.X + Card.DEFAULTCARDSIZE.Width * 2, yLoc);
                 hand.No.Location = new Point(Location.X + Card.DEFAULTCARDSIZE.Width * 3, yLoc);
-                rotateBitmap = BitmapRotateType.None;
+
+                CurrentPlacardLoc = new Point(Location.X, Location.Y);
+                PreviousPlacardLoc = new Point(Location.X + Size.Width - Placard.DEFAULTSIZE.Width, Location.Y);
+
+                RotateType = BitmapRotateType.None;
             }
             else if (ID <= 7)
             {
@@ -64,7 +79,12 @@ namespace SecretHitler.Objects
                 hand.Role.Location = new Point(Location.X + Card.DEFAULTCARDSIZE.Width * 2, Location.Y);
                 hand.Yes.Location = new Point(Location.X + Card.DEFAULTCARDSIZE.Width, Location.Y);
                 hand.No.Location = new Point(Location.X, Location.Y);
-                rotateBitmap = BitmapRotateType.Half;
+
+                var placardYLoc = Location.Y + Size.Height - Placard.DEFAULTSIZE.Height;
+                CurrentPlacardLoc = new Point(Location.X + Size.Width - Placard.DEFAULTSIZE.Width, placardYLoc);
+                PreviousPlacardLoc = new Point(Location.X, placardYLoc);
+
+                RotateType = BitmapRotateType.Half;
             }
             else if (ID == 8)
             {
@@ -72,7 +92,12 @@ namespace SecretHitler.Objects
                 hand.Role.Location = new Point(Location.X, Location.Y + Card.DEFAULTCARDSIZE.Width);
                 hand.Yes.Location = new Point(Location.X, Location.Y + Card.DEFAULTCARDSIZE.Width * 2);
                 hand.No.Location = new Point(Location.X, Location.Y + Card.DEFAULTCARDSIZE.Width * 3);
-                rotateBitmap = BitmapRotateType.Left;
+
+                var placardXLoc = Location.X + Size.Width - Placard.DEFAULTSIZE.Height;
+                CurrentPlacardLoc = new Point(placardXLoc, Location.Y);
+                PreviousPlacardLoc = new Point(placardXLoc, Location.Y + Size.Height - Placard.DEFAULTSIZE.Width);
+
+                RotateType = BitmapRotateType.Left;
             }
             else //9
             {
@@ -81,7 +106,24 @@ namespace SecretHitler.Objects
                 hand.Role.Location = new Point(xLoc, Location.Y + Card.DEFAULTCARDSIZE.Width * 2);
                 hand.Yes.Location = new Point(xLoc, Location.Y + Card.DEFAULTCARDSIZE.Width);
                 hand.No.Location = new Point(xLoc, Location.Y);
-                rotateBitmap = BitmapRotateType.Right;
+
+                CurrentPlacardLoc = new Point(Location.X, Location.Y + Size.Height - Card.DEFAULTCARDSIZE.Width);
+                PreviousPlacardLoc = new Point(Location.X, Location.Y);
+
+                RotateType = BitmapRotateType.Right;
+            }
+        }
+
+        public void OnClick(Point point, bool isLeftClick)
+        {
+            var hand = Player?.Hand;
+            if(hand != null)
+            {
+                var size = ID >= 8 ? Card.DEFAULTCARDSIZE.Rotate() : Card.DEFAULTCARDSIZE;
+                foreach (var card in new Card[] { hand.Membership, hand.Role, hand.Yes, hand.No })
+                    if (new Rectangle(card.Location, size).IsPointIn(point))
+                        if(!isLeftClick)
+                            card.Flipped = !card.Flipped;
             }
         }
     }
@@ -92,7 +134,7 @@ namespace SecretHitler.Objects
         { }
         public override Size Size
         {
-            get { return new Size(base.Size.Height, base.Size.Width); }
+            get { return base.Size.Rotate(); }
         }
     }
 }

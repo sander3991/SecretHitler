@@ -30,14 +30,16 @@
         {
             this.startBtn = new System.Windows.Forms.Button();
             this.startGameError = new System.Windows.Forms.Label();
-            this.chat1 = new SecretHitler.Views.Chat();
+            this.hiddenButton = new System.Windows.Forms.Button();
+            this.chatBar = new SecretHitler.Views.ChatBar();
             this.gamePanel1 = new SecretHitler.Views.GamePanel();
             this.SuspendLayout();
             // 
             // startBtn
             // 
+            this.startBtn.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.startBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.startBtn.Location = new System.Drawing.Point(809, 853);
+            this.startBtn.Location = new System.Drawing.Point(695, 319);
             this.startBtn.Name = "startBtn";
             this.startBtn.Size = new System.Drawing.Size(161, 61);
             this.startBtn.TabIndex = 2;
@@ -55,42 +57,52 @@
             this.startGameError.TabIndex = 3;
             this.startGameError.Visible = false;
             // 
-            // chat1
+            // hiddenButton
             // 
-            this.chat1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chat1.Location = new System.Drawing.Point(12, 802);
-            this.chat1.Name = "chat1";
-            this.chat1.Size = new System.Drawing.Size(473, 171);
-            this.chat1.TabIndex = 0;
-            this.chat1.Load += new System.EventHandler(this.Game_Load);
+            this.hiddenButton.Location = new System.Drawing.Point(13, 0);
+            this.hiddenButton.Name = "hiddenButton";
+            this.hiddenButton.Size = new System.Drawing.Size(75, 23);
+            this.hiddenButton.TabIndex = 5;
+            this.hiddenButton.Text = "button1";
+            this.hiddenButton.UseVisualStyleBackColor = true;
+            this.hiddenButton.Click += new System.EventHandler(this.OnEnterPressed);
+            // 
+            // chatBar
+            // 
+            this.chatBar.Location = new System.Drawing.Point(433, 465);
+            this.chatBar.Name = "chatBar";
+            this.chatBar.Size = new System.Drawing.Size(684, 42);
+            this.chatBar.TabIndex = 4;
             // 
             // gamePanel1
             // 
             this.gamePanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gamePanel1.Location = new System.Drawing.Point(0, 0);
             this.gamePanel1.Name = "gamePanel1";
-            this.gamePanel1.Size = new System.Drawing.Size(1264, 985);
+            this.gamePanel1.Size = new System.Drawing.Size(1550, 729);
             this.gamePanel1.TabIndex = 1;
             // 
             // Game
             // 
-            this.ClientSize = new System.Drawing.Size(1264, 985);
+            this.ClientSize = new System.Drawing.Size(1550, 729);
+            this.Controls.Add(this.hiddenButton);
+            this.Controls.Add(this.chatBar);
             this.Controls.Add(this.startGameError);
             this.Controls.Add(this.startBtn);
-            this.Controls.Add(this.chat1);
             this.Controls.Add(this.gamePanel1);
             this.Name = "Game";
+            this.Load += new System.EventHandler(this.Game_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private Chat chat1;
         private GamePanel gamePanel1;
         private System.Windows.Forms.Button startBtn;
         private System.Windows.Forms.Label startGameError;
+        private ChatBar chatBar;
+        private System.Windows.Forms.Button hiddenButton;
     }
 }
 

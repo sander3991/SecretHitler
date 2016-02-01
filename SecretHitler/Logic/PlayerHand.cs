@@ -49,5 +49,11 @@ namespace SecretHitler.Logic
             if (No == null)
                 No = new CardBallotNo();
         }
+
+        public void SetUnkown()
+        {
+            Role = new CardSecretRoleUnknown() { Flipped = true};
+            Membership = new CardMembershipUnknown() { Flipped = true};
+        }
     }
 }

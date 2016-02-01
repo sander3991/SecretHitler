@@ -16,7 +16,7 @@ namespace SecretHitler.Views
     public partial class Game : Form
     {
         public GameState GameState { get; private set; }
-        public Chat Chat { get { return GameState.Chat; } }
+        public ChatHandler Chat { get { return GameState.Chat; } }
         private delegate void SetTextDelegate(string text);
         public Game()
         {
@@ -31,20 +31,19 @@ namespace SecretHitler.Views
             if (!dialog.Join)
             {
                 //Host code
-                server = Server.GetInstance(this, gamePanel1, chat1, client);
+                server = Server.GetInstance(this, gamePanel1, client);
                 server.Start();
                 while (!server.Running) ;
-                chat1.AppendStatusMessage("Server started");
+                ChatHandler.Instance.AppendStatusMessage("Server started");
             }
-            GameState = new GameState(gamePanel1, chat1, client, server);
+            GameState = new GameState(gamePanel1, client, server);
             gamePanel1.InitializeState(GameState);
             client.Connect(dialog.IPAddress);
-            chat1.GameState = GameState;
         }
 
         private void Game_Load(object sender, EventArgs e)
         {
-            AcceptButton = chat1.SendBtn;
+            AcceptButton = hiddenButton;
             if(GameState.Server == null)
             {
                 startBtn.Visible = false;
@@ -60,6 +59,21 @@ namespace SecretHitler.Views
                 return;
             }
             GameState.Server.LaunchGame();
+        }
+
+        internal void OnEnterPressed(object sender, EventArgs e)
+        {
+            if (chatBar.Visible)
+            {
+                GameState.Client.SendMessage(chatBar.Text);
+                chatBar.Hide();
+                chatBar.Close();
+            }
+            else
+            {
+                chatBar.Show();
+                chatBar.InputField.Focus();
+            }
         }
     }
 }

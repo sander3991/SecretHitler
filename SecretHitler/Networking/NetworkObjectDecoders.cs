@@ -14,14 +14,17 @@ namespace SecretHitler.Networking
             var messageDecoder = new NetworkMessageObject.MessageObjectReader();
             RegisterDecoder(ServerCommands.Message, messageDecoder);
             RegisterDecoder(ServerCommands.ReceiveMessage, messageDecoder);
-            var playerDecoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
-            RegisterDecoder(ServerCommands.PlayerConnected, playerDecoder);
-            RegisterDecoder(ServerCommands.PlayerDisconnected, playerDecoder);
+            var newPlayerDecoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
+            RegisterDecoder(ServerCommands.PlayerConnected, newPlayerDecoder);
+            RegisterDecoder(ServerCommands.PlayerDisconnected, newPlayerDecoder);
             var cardDecoder = new NetworkCardObject.CardObjectReader();
             RegisterDecoder(ServerCommands.AnnounceCard, cardDecoder);
             RegisterDecoder(ServerCommands.SendGameState, new NetworkGameStateObject.GameStateObjectReader());
             RegisterDecoder(ServerCommands.RevealRole, new NetworkRevealRoleObject.RevealRoleObjectReader());
             RegisterDecoder(ServerCommands.Multiple, new NetworkMultipleObject.MultipleObjectReader());
+            var playerDecoder = new NetworkPlayerObject.PlayerObjectReader();
+            RegisterDecoder(ServerCommands.AnnouncePresident, playerDecoder);
+            RegisterDecoder(ServerCommands.AnnounceChancellor, playerDecoder);
         }
         private static Dictionary<ServerCommands, INetworkReader> decoders = new Dictionary<ServerCommands, INetworkReader>();
         private static INetworkReader DefaultDecoder = new NetworkObject.DefaultObjectReader();

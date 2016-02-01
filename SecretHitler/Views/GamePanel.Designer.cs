@@ -45,6 +45,9 @@
             this.DoubleBuffered = true;
             this.Name = "GamePanel";
             this.Size = new System.Drawing.Size(1264, 985);
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OnClick);
+            this.MouseHover += new System.EventHandler(this.OnMouseHover);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.OnMouseMove);
             this.ResumeLayout(false);
 
         }

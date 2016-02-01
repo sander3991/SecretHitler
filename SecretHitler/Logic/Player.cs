@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SecretHitler.Objects;
 
 namespace SecretHitler.Logic
 {
@@ -14,6 +15,7 @@ namespace SecretHitler.Logic
         private Player(string name)
         {
             Name = name;
+            Hand = new PlayerHand(new CardSecretRoleUnknown() { Flipped = true }, new CardMembershipUnknown() { Flipped = true}, true);
         }
 
         private static Dictionary<string, Player> players = new Dictionary<string, Player>();

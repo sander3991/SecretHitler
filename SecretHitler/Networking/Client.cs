@@ -95,7 +95,10 @@ namespace SecretHitler.Networking
         }
 
         public void SendMessage(string str, Action<NetworkObject> callback = null)
-            => new SendMsgHandler(new NetworkMessageObject(Name, str), this, callback);
+        {
+            if (string.IsNullOrEmpty(str)) return;
+            new SendMsgHandler(new NetworkMessageObject(Name, str), this, callback);
+        }
 
         public class ReceiveMsgHandler : BackgroundWorker
         {
@@ -122,7 +125,7 @@ namespace SecretHitler.Networking
                         else
                             OnReceive?.Invoke(receive);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
 
                     }

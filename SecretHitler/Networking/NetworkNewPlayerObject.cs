@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SecretHitler.Networking
 {
-    class NetworkNewPlayerObject : NetworkObject
+    public class NetworkNewPlayerObject : NetworkObject
     {
         public Player Player { get; private set; }
         public int SeatPos { get; private set; }

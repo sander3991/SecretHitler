@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using SecretHitler.Networking;
 using SecretHitler.Objects;
 using SecretHitler.Logic;
+using SecretHitler.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SecretHitlerUnitTests
@@ -10,19 +12,23 @@ namespace SecretHitlerUnitTests
     public class UnitTest1
     {
         [TestMethod]
-        public void TestMultipleObjectSender()
+        public void TestExtensions()
         {
-            var player = Player.GetPlayer("Sander");
-            var player2 = Player.GetPlayer("Stefan");
-            player.Hand = new PlayerHand(new CardSecretRoleFascist(1), new CardMembershipFascist());
-            player2.Hand = new PlayerHand(new CardSecretRoleFascist(0), new CardMembershipFascist());
-            var msg = new NetworkMultipleObject(new NetworkRevealRoleObject(player), new NetworkRevealRoleObject(player2));
-            var decoder = ServerCommands.Multiple.GetDecoder();
-            var bytes = decoder.GenerateByteStream(msg);
-            var decoded = decoder.GenerateObject(bytes);
-            Assert.IsInstanceOfType(decoded, typeof(NetworkMultipleObject));
-            var receivedMsg = decoded as NetworkMultipleObject;
-            Assert.IsTrue(receivedMsg.Objects.Length == 2);
+            // Check Points in Rectangle
+            var rect = new Rectangle(0, 0, 200, 200);
+            Assert.IsTrue(rect.IsPointIn(new Point(100, 100)));
+            Assert.IsTrue(rect.IsPointIn(new Point(200, 200)));
+            Assert.IsFalse(rect.IsPointIn(new Point(201, 201)));
+            Assert.IsTrue(rect.IsPointIn(new Point(0, 0)));
+            Assert.IsFalse(rect.IsPointIn(new Point(-1, -1)));
+
+            //Check Point Relative To Point
+            var point1 = new Point(100, 100);
+            var point2 = new Point(200, 200);
+            Assert.AreEqual(point2.RelativeTo(point1), point1);
+            Assert.AreNotEqual(point1.RelativeTo(point2), point1);
+            Assert.AreEqual(point1.RelativeTo(point2), new Point(-100, -100));
+            Assert.AreEqual(point1.RelativeTo(new Point(50, 50)), new Point(50, 50));
         }
     }
 }

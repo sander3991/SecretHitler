@@ -4,7 +4,6 @@ using SecretHitler.Objects;
 using SecretHitler.Views;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,9 +14,9 @@ namespace SecretHitler.Logic
         public bool Started { get; private set; }
         public event Action<GameState> OnStart;
         private GamePanel panel;
-        public Chat Chat { get; }
         public Client Client { get; }
         public Server Server { get; }
+        public ChatHandler Chat { get; }
         public int PlayerCount {
             get
             {
@@ -30,11 +29,15 @@ namespace SecretHitler.Logic
         }
         public Player[] SeatedPlayers { get; set; }
         public Player Me { get; private set; } //Client Side Only
+        public Player President { get; private set; }
+        public Player Chancellor { get; private set; }
+        public Player PreviousPresident { get; private set; }
+        public Player PreviousChancellor { get; private set; }
         public GameState() { }
-        public GameState(GamePanel panel, Chat chat, Client client, Server server, bool isServerSide = false)
+        public GameState(GamePanel panel, Client client, Server server, bool isServerSide = false)
         {
             Client = client;
-            Chat = chat;
+            Chat = ChatHandler.Initialize(this);
             Server = server;
             this.panel = panel;
             SeatedPlayers = new Player[10];
@@ -64,17 +67,70 @@ namespace SecretHitler.Logic
                         }
                     break;
                 case ServerCommands.PlayerConnected:
-                    var playerObj = obj as NetworkNewPlayerObject;
-                    SeatedPlayers[playerObj.SeatPos] = playerObj.Player;
+                    var newPlayerObj = obj as NetworkNewPlayerObject;
+                    SeatedPlayers[newPlayerObj.SeatPos] = newPlayerObj.Player;
                     break;
                 case ServerCommands.AnnounceCard:
+                    SetPresident(null);
+                    PreviousChancellor = null;
+                    PreviousPresident = null;
+                    SetPlacardValue(PlayArea.PlacardPrevChancellor, null, false);
+                    SetPlacardValue(PlayArea.PlacardPrevPresident, null, false);
                     foreach (Player player in SeatedPlayers)
-                        player.Hand = null;
+                        if (player != null) player?.Hand.SetUnkown();
                     Me.Hand = new PlayerHand((obj as NetworkCardObject).Cards);
                     SetUnknownCards();
                     Started = true;
                     OnStart?.Invoke(this);
                     break;
+                case ServerCommands.RevealRole:
+                    var revealObj = obj as NetworkRevealRoleObject;
+                    revealObj.Player.Hand.Role = revealObj.SecretRole;
+                    revealObj.Player.Hand.Membership = revealObj.SecretRole.IsFascist ? (CardMembership)new CardMembershipFascist() : new CardMembershipLiberal();
+                    break;
+                case ServerCommands.AnnouncePresident:
+                    SetPresident((obj as NetworkPlayerObject).Player);
+                    break;
+                case ServerCommands.AnnounceChancellor:
+                    SetChancellor((obj as NetworkPlayerObject).Player);
+                    break;
+            }
+        }
+
+        private void SetChancellor(Player player)
+        {
+            if (Chancellor != null)
+            {
+                PreviousChancellor = Chancellor;
+                SetPlacardValue(PlayArea.PlacardPrevChancellor, PreviousChancellor, false);
+            }
+            Chancellor = player;
+            SetPlacardValue(PlayArea.PlacardChancellor, Chancellor, true);
+        }
+        private void SetPresident(Player player)
+        {
+            if (President != null)
+            {
+                PreviousPresident = President;
+                SetPlacardValue(PlayArea.PlacardPrevPresident, PreviousPresident, false);
+            }
+            President = player;
+            SetPlacardValue(PlayArea.PlacardPresident, President, true);
+            SetChancellor(null);
+        }
+        private void SetPlacardValue(Placard placard, Player value, bool current)
+        {
+            if (value == null)
+            {
+                placard.Location = placard.DefaultLoc;
+                placard.RotateType = BitmapRotateType.None;
+            }
+            else
+            {
+                int seatPos = Array.IndexOf(SeatedPlayers, value);
+                var playArea = panel.PlayerAreas[seatPos];
+                placard.Location = current ? playArea.CurrentPlacardLoc : playArea.PreviousPlacardLoc;
+                placard.RotateType = playArea.RotateType;
             }
         }
 

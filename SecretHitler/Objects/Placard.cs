@@ -8,48 +8,54 @@ using System.Threading.Tasks;
 
 namespace SecretHitler.Objects
 {
-    abstract class Placard : GameObject
+    public abstract class Placard : GameObject
     {
-        protected static readonly Size DEFAULTSIZE = new Size(140, 48);
+        public static readonly Size DEFAULTSIZE = new Size(140, 48);
         public override Size Size
         {
             get { return DEFAULTSIZE; }
             set { throw new InvalidOperationException("You cannot change the size of a Placard"); }
         }
-        public abstract Image Picture { get; }
+        public abstract Bitmap Picture { get; }
+        public abstract Point DefaultLoc { get; }
+        public BitmapRotateType RotateType { get; set; }
         public override void Draw(Graphics g, BitmapRotateType type = BitmapRotateType.None)
         {
-            g.DrawImageUnscaled(Picture, DrawLocation);
+            g.DrawImageUnscaled(Picture.GetRotatedBitmap(RotateType), DrawLocation);
         }
     }
-    class PlacardChancellor : Placard
+    public class PlacardChancellor : Placard
     {
-        private static Image PICTURE = Properties.Resources.tex_placard_chancellor.CutToSize(DEFAULTSIZE);
-        public override Image Picture
+        public override Point DefaultLoc { get { return new Point(0, 0); } }
+        private static Bitmap PICTURE = Properties.Resources.tex_placard_chancellor.CutToSize(DEFAULTSIZE);
+        public override Bitmap Picture
         {
             get { return PICTURE; }
         }
     }
-    class PlacardPresident : Placard
+    public class PlacardPresident : Placard
     {
-        private static Image PICTURE = Properties.Resources.tex_placard_president.CutToSize(DEFAULTSIZE);
-        public override Image Picture
+        public override Point DefaultLoc { get { return new Point(DEFAULTSIZE.Width, 0); } }
+        private static Bitmap PICTURE = Properties.Resources.tex_placard_president.CutToSize(DEFAULTSIZE);
+        public override Bitmap Picture
         {
             get { return PICTURE; }
         }
     }
-    class PlacardPrevChancellor : Placard
+    public class PlacardPrevChancellor : Placard
     {
-        private static Image PICTURE = Properties.Resources.tex_quick_rules_chancellor_previously_elected.CutToSize(DEFAULTSIZE);
-        public override Image Picture
+        public override Point DefaultLoc { get { return new Point(DEFAULTSIZE.Width * 2, 0); } }
+        private static Bitmap PICTURE = Properties.Resources.tex_quick_rules_chancellor_previously_elected.CutToSize(DEFAULTSIZE);
+        public override Bitmap Picture
         {
             get { return PICTURE; }
         }
     }
-    class PlacardPrevPresident : Placard
+    public class PlacardPrevPresident : Placard
     {
-        private static Image PICTURE = Properties.Resources.tex_quick_rules_president_previously_elected.CutToSize(DEFAULTSIZE);
-        public override Image Picture
+        public override Point DefaultLoc { get { return new Point(DEFAULTSIZE.Width * 3, 0); } }
+        private static Bitmap PICTURE = Properties.Resources.tex_quick_rules_president_previously_elected.CutToSize(DEFAULTSIZE);
+        public override Bitmap Picture
         {
             get { return PICTURE; }
         }

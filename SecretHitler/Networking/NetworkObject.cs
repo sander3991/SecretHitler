@@ -12,7 +12,11 @@ namespace SecretHitler.Networking
     {
         private static uint NextID = 1;
         protected const char SEPERATOR = '|';
-        public uint ID { get; private set; }
+        private uint id;
+        public uint ID
+        {
+            get { return id; }
+        }
         public ServerCommands Command { get; private set; }
         private byte[] bytes;
         public string Message { get; set; }
@@ -26,15 +30,18 @@ namespace SecretHitler.Networking
         }
         public NetworkObject(ServerCommands command, string msg = null, uint? ID = null)
         {
-            ID = ID.HasValue ? ID.Value : NextID++;
+            id = ID.HasValue ? ID.Value : NextID++;
             Message = msg;
             Command = command;
         }
-        protected NetworkObject() { }
+        protected NetworkObject()
+        {
+            id = NextID++;
+        }
         protected void DecodeHeader(byte[] bytes)
         {
             Command = (ServerCommands)bytes[0];
-            ID = BitConverter.ToUInt32(bytes, 1);
+            id = BitConverter.ToUInt32(bytes, 1);
         }
         public void Send(Socket socket)
             => socket.Send(Bytes);
@@ -53,7 +60,7 @@ namespace SecretHitler.Networking
             protected void DecodeHeader(NetworkObject obj, byte[] bytes)
             {
                 obj.Command = (ServerCommands)bytes[0];
-                obj.ID = BitConverter.ToUInt32(bytes, 1);
+                obj.id = BitConverter.ToUInt32(bytes, 1);
                 obj.bytes = bytes;
             }
             protected List<byte> Header(NetworkObject obj)
@@ -67,9 +74,10 @@ namespace SecretHitler.Networking
             protected int FindLastByte(byte[] bytes, int startIndex = CONTENTINDEX, int byteSize = 1)
             {
                 int lastByte;
-                for (lastByte = startIndex; lastByte < bytes.Length && bytes[lastByte] != 0; lastByte += byteSize) ;
+                for (lastByte = startIndex; HasByte(bytes, lastByte); lastByte += byteSize) ;
                 return lastByte;
             }
+            protected bool HasByte(byte[] bytes, int index) => index < bytes.Length && bytes[index] != 0;
 
             protected string EncodeString(string str) => str.Replace("&", "&amp;").Replace(SEPERATOR.ToString(), "&#124;");
             protected string DecodeString(string str) => str.Replace("&#124;", SEPERATOR.ToString()).Replace("&amp;", "&");
