@@ -34,7 +34,6 @@ namespace SecretHitler.Views
                 server = Server.GetInstance(this, gamePanel1, client);
                 server.Start();
                 while (!server.Running) ;
-                ChatHandler.Instance.AppendStatusMessage("Server started");
             }
             GameState = new GameState(gamePanel1, client, server);
             gamePanel1.InitializeState(GameState);
@@ -74,6 +73,13 @@ namespace SecretHitler.Views
                 chatBar.Show();
                 chatBar.InputField.Focus();
             }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            Console.WriteLine("Open chat history");
+            if(!ChatHistory.IsOpen)
+            new ChatHistory().Show();
         }
     }
 }

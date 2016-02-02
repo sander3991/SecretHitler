@@ -223,6 +223,16 @@ namespace SecretHitler.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap speechballoon {
+            get {
+                object obj = ResourceManager.GetObject("speechballoon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap tex_placard_chancellor {
             get {
                 object obj = ResourceManager.GetObject("tex_placard_chancellor", resourceCulture);

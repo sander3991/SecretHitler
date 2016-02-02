@@ -80,9 +80,26 @@ namespace SecretHitler.Views
         {
             base.OnPaint(e);
             var g = e.Graphics;
+            List<GameObject> rem = null;
             lock (Objects)
+            {
+
                 foreach (var obj in Objects)
+                {
                     obj.Draw(g);
+                    if (obj.DetonateTimer.HasValue && (DateTime.Now - obj.StartTime) > obj.DetonateTimer.Value)
+                    {
+                        rem = rem ?? new List<GameObject>();
+                        rem.Add(obj);
+                    }
+                }
+                if(rem != null)
+                    foreach (var obj in rem)
+                    {
+                        Objects.Remove(obj);
+                        obj.TriggerDetonate();
+                    }
+            }
             DrawZoom(g);
         }
 

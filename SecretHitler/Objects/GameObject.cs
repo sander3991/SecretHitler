@@ -10,6 +10,9 @@ namespace SecretHitler.Objects
 {
     public abstract class GameObject
     {
+        public TimeSpan? DetonateTimer { get; protected set; }
+        public DateTime StartTime { get; private set; } = DateTime.Now;
+        public event Action<GameObject> OnDetonate;
         public Rectangle DrawLocation { get; set; }
         public Point Location
         {
@@ -28,5 +31,12 @@ namespace SecretHitler.Objects
             set { DrawLocation = new Rectangle(Location, value); }
         }
         public abstract void Draw(Graphics g, BitmapRotateType rotate = BitmapRotateType.None);
+
+        internal void TriggerDetonate()
+        {
+            OnDetonate?.Invoke(this);
+        }
+        protected void ResetTimer()
+            => StartTime = DateTime.Now;
     }
 }

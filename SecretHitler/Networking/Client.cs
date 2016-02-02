@@ -58,7 +58,6 @@ namespace SecretHitler.Networking
                 Thread.Sleep(100);
             if (!connected)
                 throw new HttpListenerException();
-            game.Chat.AppendStatusMessage($"Connected to server: {ipEndPoint}");
             OnConnected?.Invoke(this);
             game.FormClosing += CloseConnections;
         }

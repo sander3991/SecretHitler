@@ -33,6 +33,8 @@ namespace SecretHitler.Logic
         public Player Chancellor { get; private set; }
         public Player PreviousPresident { get; private set; }
         public Player PreviousChancellor { get; private set; }
+        public LinkedList<GameObject> GameObjects { get { return panel.Objects; } }
+        public PlayArea[] PlayAreas { get { return panel.PlayerAreas; } }
         public GameState() { }
         public GameState(GamePanel panel, Client client, Server server, bool isServerSide = false)
         {

@@ -33,6 +33,8 @@
             this.hiddenButton = new System.Windows.Forms.Button();
             this.chatBar = new SecretHitler.Views.ChatBar();
             this.gamePanel1 = new SecretHitler.Views.GamePanel();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // startBtn
@@ -61,7 +63,7 @@
             // 
             this.hiddenButton.Location = new System.Drawing.Point(13, 0);
             this.hiddenButton.Name = "hiddenButton";
-            this.hiddenButton.Size = new System.Drawing.Size(75, 23);
+            this.hiddenButton.Size = new System.Drawing.Size(0, 0);
             this.hiddenButton.TabIndex = 5;
             this.hiddenButton.Text = "button1";
             this.hiddenButton.UseVisualStyleBackColor = true;
@@ -73,6 +75,7 @@
             this.chatBar.Name = "chatBar";
             this.chatBar.Size = new System.Drawing.Size(684, 42);
             this.chatBar.TabIndex = 4;
+            this.chatBar.Visible = false;
             // 
             // gamePanel1
             // 
@@ -82,9 +85,21 @@
             this.gamePanel1.Size = new System.Drawing.Size(1550, 729);
             this.gamePanel1.TabIndex = 1;
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::SecretHitler.Properties.Resources.speechballoon;
+            this.pictureBox1.Location = new System.Drawing.Point(1512, 12);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(26, 24);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 6;
+            this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            // 
             // Game
             // 
             this.ClientSize = new System.Drawing.Size(1550, 729);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.hiddenButton);
             this.Controls.Add(this.chatBar);
             this.Controls.Add(this.startGameError);
@@ -92,6 +107,7 @@
             this.Controls.Add(this.gamePanel1);
             this.Name = "Game";
             this.Load += new System.EventHandler(this.Game_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -103,6 +119,7 @@
         private System.Windows.Forms.Label startGameError;
         private ChatBar chatBar;
         private System.Windows.Forms.Button hiddenButton;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 
