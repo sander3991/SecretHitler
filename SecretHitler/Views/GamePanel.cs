@@ -20,6 +20,7 @@ namespace SecretHitler.Views
         private GameState state;
         private Point mousePos;
         private IZoomable zoomable;
+        private IHooverable hover;
         public GamePanel()
         {
             InitializeComponent();
@@ -34,11 +35,12 @@ namespace SecretHitler.Views
 
         private void DefineBoards(GameState obj)
         {
-            var xLocation = Width / 2 - (Board.DEFAULTSIZE.Width / 2);
+            var xLocation = Width / 2;
+            var yLocation = Height / 2 - (Board.DEFAULTSIZE.Height / 2);
             lock (Objects)
             {
-                Objects.AddFirst(new LiberalBoard() { Location = new Point(xLocation, 200) });
-                Objects.AddFirst(new FascistBoard(obj.PlayerCount) { Location = new Point(xLocation, 200 + Board.DEFAULTSIZE.Height) });
+                Objects.AddFirst(new LiberalBoard() { Location = new Point(xLocation - Board.DEFAULTSIZE.Width, yLocation) });
+                Objects.AddFirst(new FascistBoard(obj.PlayerCount) { Location = new Point(xLocation, yLocation) });
             }
         }
 
@@ -52,24 +54,24 @@ namespace SecretHitler.Views
             int borderTop = 0;
             int paddingSide = 10;
             int offsetTop = borderTop + PlayArea.DEFAULTSIZE.Height;
-            int locationVertical = (offsetBottom - offsetTop - playerAreaWidth) / 2 + offsetTop;
+            int locationVertical = (offsetBottom - offsetTop - playerAreaWidth) / 2 + offsetTop + 60;
             for (var i = 0; i < PlayerAreas.Length; i++)
             {
-                var area = i >= 8 ? new PlayAreaVertical(state, i) : new PlayArea(state, i);
+                var area = new PlayArea(state, i);
                 if (i < 8)
                     area.Location = new Point((i % 4) * horizontalSpacing + padding, i / 4 == 0 ? offsetBottom : borderTop);
                 else
-                    area.Location = new Point(i == 8 ? paddingSide : Width - paddingSide - PlayArea.DEFAULTSIZE.Height, locationVertical);
+                    area.Location = new Point(i == 8 ? -50 : Width - paddingSide - PlayArea.DEFAULTSIZE.Height - 50, locationVertical);
                 Objects.AddLast(area);
                 PlayerAreas[i] = area;
             }
         }
         private void GeneratePlacards()
         {
-            Objects.AddLast(PlayArea.PlacardChancellor);
+            /*Objects.AddLast(PlayArea.PlacardChancellor);
             Objects.AddLast(PlayArea.PlacardPresident);
             Objects.AddLast(PlayArea.PlacardPrevPresident);
-            Objects.AddLast(PlayArea.PlacardPrevChancellor);
+            Objects.AddLast(PlayArea.PlacardPrevChancellor);*/
             PlayArea.PlacardPresident.Location = new Point(Placard.DEFAULTSIZE.Width, 0);
             PlayArea.PlacardPrevChancellor.Location = new Point(Placard.DEFAULTSIZE.Width * 2, 0);
             PlayArea.PlacardPrevPresident.Location = new Point(Placard.DEFAULTSIZE.Width * 3, 0);
@@ -105,6 +107,7 @@ namespace SecretHitler.Views
 
         private void DrawZoom(Graphics g)
         {
+            if (ModifierKeys != Keys.Shift) return;
             using (var bitmap = new Bitmap(550, 550))
                 if (zoomable?.DrawZoomedIn(bitmap, mousePos) != null)
                     g.DrawImageUnscaled(bitmap, new Point(Math.Max(mousePos.X - 200, 0), Math.Max(mousePos.Y - 200, 0)));
@@ -152,29 +155,33 @@ namespace SecretHitler.Views
         private void OnClick(object sender, MouseEventArgs e)
         {
             foreach (var area in PlayerAreas)
-                if (area.DrawLocation.IsPointIn(e.Location))
-                    area.OnClick(e.Location, e.Button == MouseButtons.Left);
-        }
-
-        private void OnMouseHover(object sender, EventArgs e)
-        {
-            Console.WriteLine($"X: {mousePos.X} Y: {mousePos.Y}");
-
+                if (area.ClickLocation.IsPointIn(e.Location))
+                    area.Click(e.Location, e.Button == MouseButtons.Left);
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
             mousePos = e.Location;
             foreach (var obj in Objects)
-                if (obj.DrawLocation.IsPointIn(mousePos) && obj is IZoomable)
+                if (obj.ClickLocation.IsPointIn(mousePos))
                 {
-                    if (zoomable == obj)
-                        return;
-                    zoomable = obj as IZoomable;
-                    if (lastBitmap != null)
-                        lock(lastBitmap)
-                            lastBitmap = null;
-                    Console.WriteLine($"{obj.GetType().Name} is now zoomable");
+                    if(obj is IZoomable)
+                    {
+                        if (zoomable == obj)
+                            return;
+                        zoomable = obj as IZoomable;
+                        if (lastBitmap != null)
+                            lock (lastBitmap)
+                                lastBitmap = null;
+                    }
+                    if (obj is IHooverable)
+                    {
+                        if (hover == obj)
+                            return;
+                        hover?.OnHoverLeave();
+                        hover = obj as IHooverable;
+                        hover.OnHover();
+                    }
                     return;
                 }
             zoomable = null;

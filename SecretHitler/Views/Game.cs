@@ -31,13 +31,30 @@ namespace SecretHitler.Views
             if (!dialog.Join)
             {
                 //Host code
-                server = Server.GetInstance(this, gamePanel1, client);
+                server = Server.GetInstance(this, gamePanel, client);
                 server.Start();
                 while (!server.Running) ;
             }
-            GameState = new GameState(gamePanel1, client, server);
-            gamePanel1.InitializeState(GameState);
+            GameState = new GameState(gamePanel, client, server, this);
+            gamePanel.InitializeState(GameState);
             client.Connect(dialog.IPAddress);
+            statusLabel.Parent = gamePanel;
+            playerMsg.Parent = gamePanel;
+        }
+
+        internal void SetStatusText(string txt)
+        {
+            if (statusLabel.InvokeRequired)
+                statusLabel.Invoke(new Action<string>(SetStatusText), txt);
+            else
+                statusLabel.Text = txt;
+        }
+        internal void SetPlayerMessage(string txt)
+        {
+            if (playerMsg.InvokeRequired)
+                playerMsg.Invoke(new Action<string>(SetPlayerMessage), txt);
+            else
+                playerMsg.Text = txt;
         }
 
         private void Game_Load(object sender, EventArgs e)
@@ -77,7 +94,6 @@ namespace SecretHitler.Views
 
         private void pictureBox1_Click(object sender, EventArgs e)
         {
-            Console.WriteLine("Open chat history");
             if(!ChatHistory.IsOpen)
             new ChatHistory().Show();
         }

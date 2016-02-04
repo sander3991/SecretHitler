@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SecretHitler.Logic;
 
 namespace SecretHitler.Networking
 {
@@ -97,6 +98,12 @@ namespace SecretHitler.Networking
         {
             if (string.IsNullOrEmpty(str)) return;
             new SendMsgHandler(new NetworkMessageObject(Name, str), this, callback);
+        }
+
+        public void ChooseChancellor(Player player)
+        {
+            var playerObj = new NetworkPlayerObject(ServerCommands.AnnounceChancellor, player);
+            new SendMsgHandler(playerObj, this);
         }
 
         public class ReceiveMsgHandler : BackgroundWorker

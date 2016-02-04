@@ -14,6 +14,7 @@ namespace SecretHitler.Objects
         public DateTime StartTime { get; private set; } = DateTime.Now;
         public event Action<GameObject> OnDetonate;
         public Rectangle DrawLocation { get; set; }
+        public virtual Rectangle ClickLocation { get { return DrawLocation; } }
         public Point Location
         {
             get
@@ -30,7 +31,7 @@ namespace SecretHitler.Objects
             get { return DrawLocation.Size; }
             set { DrawLocation = new Rectangle(Location, value); }
         }
-        public abstract void Draw(Graphics g, BitmapRotateType rotate = BitmapRotateType.None);
+        public abstract void Draw(Graphics g);
 
         internal void TriggerDetonate()
         {

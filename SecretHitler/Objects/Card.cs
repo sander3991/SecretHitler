@@ -19,7 +19,7 @@ namespace SecretHitler.Objects
             get { return DEFAULTCARDSIZE; }
             set { throw new InvalidOperationException("Card size may not be adjusted"); }
         }
-        public sealed override void Draw(Graphics g, BitmapRotateType rotate)
-            => g.DrawImageUnscaled((Flipped ? Back : Front).GetRotatedBitmap(rotate), DrawLocation);
+        public sealed override void Draw(Graphics g)
+            => g.DrawImageUnscaled((Flipped ? Back : Front), DrawLocation);
     }
 }

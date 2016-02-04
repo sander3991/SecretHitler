@@ -28,13 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Game));
             this.startBtn = new System.Windows.Forms.Button();
             this.startGameError = new System.Windows.Forms.Label();
             this.hiddenButton = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.chatBox = new System.Windows.Forms.PictureBox();
             this.chatBar = new SecretHitler.Views.ChatBar();
-            this.gamePanel1 = new SecretHitler.Views.GamePanel();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.gamePanel = new SecretHitler.Views.GamePanel();
+            this.playerMsg = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.chatBox)).BeginInit();
             this.SuspendLayout();
             // 
             // startBtn
@@ -69,6 +72,32 @@
             this.hiddenButton.UseVisualStyleBackColor = true;
             this.hiddenButton.Click += new System.EventHandler(this.OnEnterPressed);
             // 
+            // statusLabel
+            // 
+            this.statusLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.BackColor = System.Drawing.Color.Transparent;
+            this.statusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.statusLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(143)))), ((int)(((byte)(79)))), ((int)(((byte)(106)))));
+            this.statusLabel.Location = new System.Drawing.Point(421, 205);
+            this.statusLabel.MaximumSize = new System.Drawing.Size(700, 80);
+            this.statusLabel.MinimumSize = new System.Drawing.Size(700, 80);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(700, 80);
+            this.statusLabel.TabIndex = 7;
+            this.statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // chatBox
+            // 
+            this.chatBox.Image = global::SecretHitler.Properties.Resources.speechballoon;
+            this.chatBox.Location = new System.Drawing.Point(1512, 12);
+            this.chatBox.Name = "chatBox";
+            this.chatBox.Size = new System.Drawing.Size(26, 24);
+            this.chatBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.chatBox.TabIndex = 6;
+            this.chatBox.TabStop = false;
+            this.chatBox.Click += new System.EventHandler(this.pictureBox1_Click);
+            // 
             // chatBar
             // 
             this.chatBar.Location = new System.Drawing.Point(433, 465);
@@ -77,49 +106,58 @@
             this.chatBar.TabIndex = 4;
             this.chatBar.Visible = false;
             // 
-            // gamePanel1
+            // gamePanel
             // 
-            this.gamePanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gamePanel1.Location = new System.Drawing.Point(0, 0);
-            this.gamePanel1.Name = "gamePanel1";
-            this.gamePanel1.Size = new System.Drawing.Size(1550, 729);
-            this.gamePanel1.TabIndex = 1;
+            this.gamePanel.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("gamePanel.BackgroundImage")));
+            this.gamePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gamePanel.Location = new System.Drawing.Point(0, 0);
+            this.gamePanel.Name = "gamePanel";
+            this.gamePanel.Size = new System.Drawing.Size(1550, 729);
+            this.gamePanel.TabIndex = 1;
             // 
-            // pictureBox1
+            // playerMsg
             // 
-            this.pictureBox1.Image = global::SecretHitler.Properties.Resources.speechballoon;
-            this.pictureBox1.Location = new System.Drawing.Point(1512, 12);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(26, 24);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 6;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            this.playerMsg.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.playerMsg.AutoSize = true;
+            this.playerMsg.BackColor = System.Drawing.Color.Transparent;
+            this.playerMsg.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.playerMsg.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(143)))), ((int)(((byte)(79)))), ((int)(((byte)(106)))));
+            this.playerMsg.Location = new System.Drawing.Point(421, 445);
+            this.playerMsg.MaximumSize = new System.Drawing.Size(700, 80);
+            this.playerMsg.MinimumSize = new System.Drawing.Size(700, 80);
+            this.playerMsg.Name = "playerMsg";
+            this.playerMsg.Size = new System.Drawing.Size(700, 80);
+            this.playerMsg.TabIndex = 8;
+            this.playerMsg.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Game
             // 
             this.ClientSize = new System.Drawing.Size(1550, 729);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.playerMsg);
+            this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.chatBox);
             this.Controls.Add(this.hiddenButton);
             this.Controls.Add(this.chatBar);
             this.Controls.Add(this.startGameError);
             this.Controls.Add(this.startBtn);
-            this.Controls.Add(this.gamePanel1);
+            this.Controls.Add(this.gamePanel);
             this.Name = "Game";
             this.Load += new System.EventHandler(this.Game_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.chatBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-        private GamePanel gamePanel1;
+        private GamePanel gamePanel;
         private System.Windows.Forms.Button startBtn;
         private System.Windows.Forms.Label startGameError;
         private ChatBar chatBar;
         private System.Windows.Forms.Button hiddenButton;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox chatBox;
+        private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.Label playerMsg;
     }
 }
 

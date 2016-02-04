@@ -20,7 +20,7 @@ namespace SecretHitler.Logic
             public PlayerArgs(PlayArea area = null)
             {
                 if (area != null)
-                    DrawLocation = new Point(area.Location.X + area.Size.Width / 2, area.Location.Y + area.Size.Height / 2);
+                    DrawLocation = area.Location;
             }
         }
         public static ChatHandler Instance { get; private set; }
@@ -52,9 +52,31 @@ namespace SecretHitler.Logic
             {
                 case ServerCommands.ReceiveMessage:
                     var msgObj = obj as NetworkMessageObject;
-                    AppendMessage(Player.GetPlayer(msgObj.Username), msgObj.Message);
+                    CreatePlayerBubble(Player.GetPlayer(msgObj.Username), msgObj.Message);
+                    break;
+                case ServerCommands.PlayerConnected:
+                    var connected = obj as NetworkNewPlayerObject;
+                    CreatePlayerBubble(connected.Player, $"{connected.Player.Name} has connected");
+                    break;
+                case ServerCommands.PlayerDisconnected:
+                    var disconnected = obj as NetworkNewPlayerObject;
+                    CreatePlayerBubble(disconnected.Player, $"{disconnected.Player.Name} has lost connection");
+                    break;
+                case ServerCommands.AnnouncePresident:
+                    var playerObj = obj as NetworkPlayerObject;
+                    SetStatusMessage($"{playerObj.Player.Name} is now president");
+                    break;
+                case ServerCommands.AnnounceChancellor:
+                    var chancellorObj = obj as NetworkPlayerObject;
+                    SetStatusMessage($"{state.President.Name} has chosen {chancellorObj.Player.Name} as his/her chancellor");
                     break;
             }
+        }
+
+        private void SetStatusMessage(string txt)
+        {
+            state.Window.SetStatusText(txt);
+            MessageHistory.Instance.AddHistory($"SERVER: {txt}");
         }
 
         private void TextObj_OnDetonate(GameObject obj)
@@ -64,19 +86,19 @@ namespace SecretHitler.Logic
             var args = TextObjects[txtObj.Player];
             args.Object = null;
             if (args.QueuedMessages.Count > 0)
-                AppendMessage(txtObj.Player, args.QueuedMessages.Pop());
+                CreatePlayerBubble(txtObj.Player, args.QueuedMessages.Pop());
         }
 
         internal void AppendStatusMessage(string v)
         {
-            
+            MessageHistory.Instance.AddHistory(v);
         }
         private PlayArea FindPlayArea(Player player)
         {
             int index = state.GetPlayerPos(player.Name);
             return index == -1 ? null : state.PlayAreas[index];
         }
-        internal void AppendMessage(Player player, string message)
+        internal void CreatePlayerBubble(Player player, string message)
         {
             if (!TextObjects.ContainsKey(player))
                 TextObjects.Add(player, new PlayerArgs(FindPlayArea(player)));

@@ -21,7 +21,7 @@ namespace SecretHitler.Objects
             }
         }
 
-        public override void Draw(Graphics g, BitmapRotateType type = BitmapRotateType.None)
+        public override void Draw(Graphics g)
             => g.DrawImageUnscaled(Image, DrawLocation);
     }
     class PileDiscard : Pile

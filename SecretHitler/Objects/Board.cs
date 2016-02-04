@@ -19,7 +19,7 @@ namespace SecretHitler.Objects
         }
         protected abstract Bitmap Picture { get; }
         protected abstract Bitmap Raw { get; }
-        public override void Draw(Graphics g, BitmapRotateType rotate = BitmapRotateType.None)
+        public override void Draw(Graphics g)
             => g.DrawImageUnscaled(Picture, DrawLocation);
 
         public bool DrawZoomedIn(Bitmap bitmap, Point p)

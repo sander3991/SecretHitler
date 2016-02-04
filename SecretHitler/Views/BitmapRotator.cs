@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+/*
 namespace SecretHitler.Views
 {
     public enum BitmapRotateType
@@ -56,3 +56,4 @@ namespace SecretHitler.Views
             => target.SetPixel(source.Width - x - 1, source.Height - y - 1, source.GetPixel(x, y));
     }
 }
+*/

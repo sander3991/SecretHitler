@@ -42,11 +42,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = global::SecretHitler.Properties.Resources.background;
             this.DoubleBuffered = true;
             this.Name = "GamePanel";
             this.Size = new System.Drawing.Size(1264, 985);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OnClick);
-            this.MouseHover += new System.EventHandler(this.OnMouseHover);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.OnMouseMove);
             this.ResumeLayout(false);
 
