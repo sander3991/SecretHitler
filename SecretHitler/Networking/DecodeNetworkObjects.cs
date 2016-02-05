@@ -45,12 +45,12 @@ namespace SecretHitler.Networking
                 return decoders[command];
             return DefaultDecoder;
         }
-        public static NetworkObject Receive(Socket socket)
+        public static NetworkObject Receive(TcpClient client)
         {
             try
             {
-                byte[] response = new byte[socket.SendBufferSize];
-                socket.Receive(response);
+                byte[] response = new byte[client.ReceiveBufferSize];
+                client.GetStream().Read(response, 0, client.ReceiveBufferSize);
                 ServerCommands command = (ServerCommands)response[0];
                 return command.GetDecoder().GenerateObject(response);
             }

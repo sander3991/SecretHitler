@@ -43,10 +43,10 @@ namespace SecretHitler.Networking
             Command = (ServerCommands)bytes[0];
             id = BitConverter.ToUInt32(bytes, 1);
         }
-        public void Send(Socket socket)
+        public void Send(TcpClient client)
         {
-            if (socket == null) return;
-            socket.Send(Bytes);
+            if (client == null) return;
+            client.GetStream().Write(Bytes, 0, Bytes.Length);
         }
         public abstract class AbstractObjectReader<T> : INetworkReader where T : NetworkObject
         {

@@ -15,7 +15,7 @@ namespace SecretHitler.Networking
 {
     public class Client
     {
-        private Socket socket;
+        private TcpClient client;
         private Game game;
         private bool connected;
         private IPEndPoint ipEndPoint;
@@ -46,10 +46,10 @@ namespace SecretHitler.Networking
         {
             ipEndPoint = new IPEndPoint(address, SecretHitlerGame.DEFAULTPORT);
             IPEndPoint clientPoint = new IPEndPoint(IPAddress.Any, SecretHitlerGame.DEFAULTPORT + 1);
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            ConfigureSocket(socket);
+            client = new TcpClient(clientPoint);
+            ConfigureTcpClient(client);
             ReceiveHandler = new ReceiveMsgHandler(this);
-            socket.Connect(ipEndPoint);
+            client.Connect(ipEndPoint);
             ReceiveHandler.OnReceive += ConfirmConnected;
             ReceiveHandler.RunWorkerAsync();
             new SendMsgHandler(new NetworkObject(ServerCommands.Connect) { Message = Name }, this);
@@ -71,10 +71,15 @@ namespace SecretHitler.Networking
             socket.SendBufferSize = 8192;
             socket.ReceiveBufferSize = 8192;
         }
+        private void ConfigureTcpClient(TcpClient client)
+        {
+            client.SendBufferSize = 8192;
+            client.ReceiveBufferSize = 8192;
+        }
 
         private void CloseConnections(object sender, FormClosingEventArgs e)
         {
-            socket.Close();
+            client.Close();
         }
 
         private void ConfirmConnected(NetworkObject obj)
@@ -121,9 +126,9 @@ namespace SecretHitler.Networking
             {
                 if (Thread.CurrentThread.Name == null)
                     Thread.CurrentThread.Name = "Receive Message Handler";
-                while (client.socket.Connected)
+                while (client.client.Connected)
                 {
-                    var receive = DecodeNetworkObjects.Receive(client.socket);
+                    var receive = DecodeNetworkObjects.Receive(client.client);
                     client.connected = true;
                     try
                     {
@@ -163,7 +168,7 @@ namespace SecretHitler.Networking
                 int timeout = 0;
                 while (!received)
                 {
-                    obj.Send(client.socket);
+                    obj.Send(client.client);
                     Thread.Sleep(100);
                     if (++timeout == 10)
                         throw new TimeoutException("The message was not received!");
