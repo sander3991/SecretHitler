@@ -4,27 +4,32 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using static SecretHitler.Networking.ServerCommands;
 
 namespace SecretHitler.Networking
 {
-    public static class NetworkObjectDecoders
+    public static class DecodeNetworkObjects
     {
-        static NetworkObjectDecoders()
+        static DecodeNetworkObjects()
         {
             var messageDecoder = new NetworkMessageObject.MessageObjectReader();
-            RegisterDecoder(ServerCommands.Message, messageDecoder);
-            RegisterDecoder(ServerCommands.ReceiveMessage, messageDecoder);
+            RegisterDecoder(Message, messageDecoder);
+            RegisterDecoder(ReceiveMessage, messageDecoder);
             var newPlayerDecoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
-            RegisterDecoder(ServerCommands.PlayerConnected, newPlayerDecoder);
-            RegisterDecoder(ServerCommands.PlayerDisconnected, newPlayerDecoder);
+            RegisterDecoder(PlayerConnected, newPlayerDecoder);
+            RegisterDecoder(PlayerDisconnected, newPlayerDecoder);
             var cardDecoder = new NetworkCardObject.CardObjectReader();
-            RegisterDecoder(ServerCommands.AnnounceCard, cardDecoder);
-            RegisterDecoder(ServerCommands.SendGameState, new NetworkGameStateObject.GameStateObjectReader());
-            RegisterDecoder(ServerCommands.RevealRole, new NetworkRevealRoleObject.RevealRoleObjectReader());
-            RegisterDecoder(ServerCommands.Multiple, new NetworkMultipleObject.MultipleObjectReader());
+            RegisterDecoder(AnnounceCard, cardDecoder);
+            RegisterDecoder(SendGameState, new NetworkGameStateObject.GameStateObjectReader());
+            RegisterDecoder(RevealRole, new NetworkRevealRoleObject.RevealRoleObjectReader());
+            RegisterDecoder(Multiple, new NetworkMultipleObject.MultipleObjectReader());
             var playerDecoder = new NetworkPlayerObject.PlayerObjectReader();
-            RegisterDecoder(ServerCommands.AnnouncePresident, playerDecoder);
-            RegisterDecoder(ServerCommands.AnnounceChancellor, playerDecoder);
+            RegisterDecoder(AnnouncePresident, playerDecoder);
+            RegisterDecoder(AnnounceChancellor, playerDecoder);
+            var boolDecoder = new NetworkBoolObject.BoolObjectReader();
+            RegisterDecoder(CastVote, boolDecoder);
+            RegisterDecoder(PlayerVoted, playerDecoder);
+            RegisterDecoder(AnnounceVotes, new NetworkVoteResultObject.VoteResultObjectDecoder());
         }
         private static Dictionary<ServerCommands, INetworkReader> decoders = new Dictionary<ServerCommands, INetworkReader>();
         private static INetworkReader DefaultDecoder = new NetworkObject.DefaultObjectReader();
@@ -54,6 +59,5 @@ namespace SecretHitler.Networking
                 throw ex;
             }
         }
-
     }
 }

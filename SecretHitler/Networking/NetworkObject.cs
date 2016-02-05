@@ -44,19 +44,13 @@ namespace SecretHitler.Networking
             id = BitConverter.ToUInt32(bytes, 1);
         }
         public void Send(Socket socket)
-            => socket.Send(Bytes);
-        public class DefaultObjectReader : INetworkReader
+        {
+            if (socket == null) return;
+            socket.Send(Bytes);
+        }
+        public abstract class AbstractObjectReader<T> : INetworkReader where T : NetworkObject
         {
             protected const int CONTENTINDEX = 5;
-            public virtual NetworkObject GenerateObject(byte[] bytes)
-            {
-                var obj = new NetworkObject();
-                DecodeHeader(obj, bytes);
-                int lastByte = FindLastByte(bytes);
-                if (lastByte > CONTENTINDEX)
-                    obj.Message = Encoding.ASCII.GetString(bytes, CONTENTINDEX, lastByte - CONTENTINDEX);
-                return obj;
-            }   
             protected void DecodeHeader(NetworkObject obj, byte[] bytes)
             {
                 obj.Command = (ServerCommands)bytes[0];
@@ -70,7 +64,6 @@ namespace SecretHitler.Networking
                 bytes.AddRange(BitConverter.GetBytes(obj.ID));
                 return bytes;
             }
-
             protected int FindLastByte(byte[] bytes, int startIndex = CONTENTINDEX, int byteSize = 1)
             {
                 int lastByte;
@@ -78,11 +71,31 @@ namespace SecretHitler.Networking
                 return lastByte;
             }
             protected bool HasByte(byte[] bytes, int index) => index < bytes.Length && bytes[index] != 0;
+            public byte[] GenerateByteStream(NetworkObject obj)
+            {
+                if (!(obj is T)) throw new Exception("This reader is not ment for this type!");
+                return EncodeObject(obj as T);
+            }
 
+            public NetworkObject GenerateObject(byte[] bytes) => DecodeObject(bytes);
             protected string EncodeString(string str) => str.Replace("&", "&amp;").Replace(SEPERATOR.ToString(), "&#124;");
             protected string DecodeString(string str) => str.Replace("&#124;", SEPERATOR.ToString()).Replace("&amp;", "&");
+            public abstract T DecodeObject(byte[] bytes);
+            public abstract byte[] EncodeObject(T obj);
+        }
+        public sealed class DefaultObjectReader : AbstractObjectReader<NetworkObject>
+        {
+            public override NetworkObject DecodeObject(byte[] bytes)
+            {
+                var obj = new NetworkObject();
+                DecodeHeader(obj, bytes);
+                int lastByte = FindLastByte(bytes);
+                if (lastByte > CONTENTINDEX)
+                    obj.Message = Encoding.ASCII.GetString(bytes, CONTENTINDEX, lastByte - CONTENTINDEX);
+                return obj;
+            }   
 
-            public virtual byte[] GenerateByteStream(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkObject obj)
             {
                 var list = Header(obj);
                 if (obj.Message != null)

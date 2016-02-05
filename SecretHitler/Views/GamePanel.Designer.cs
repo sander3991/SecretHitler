@@ -1,4 +1,7 @@
-﻿namespace SecretHitler.Views
+﻿using System;
+using SecretHitler.Objects;
+
+namespace SecretHitler.Views
 {
     partial class GamePanel
     {

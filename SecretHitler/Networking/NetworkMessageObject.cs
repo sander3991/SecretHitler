@@ -15,9 +15,15 @@ namespace SecretHitler.Networking
             Username = username;
         }
         private NetworkMessageObject() { }
-        public class MessageObjectReader : DefaultObjectReader
+        public class MessageObjectReader : AbstractObjectReader<NetworkMessageObject>
         {
-            public override NetworkObject GenerateObject(byte[] bytes)
+            public override byte[] EncodeObject(NetworkMessageObject obj)
+            {
+                List<byte> bytes = Header(obj);
+                bytes.AddRange(Encoding.UTF32.GetBytes($"{EncodeString(obj.Username)}{SEPERATOR}{EncodeString(obj.Message)}"));
+                return bytes.ToArray();
+            }
+            public override NetworkMessageObject DecodeObject(byte[] bytes)
             {
                 var obj = new NetworkMessageObject();
                 DecodeHeader(obj, bytes);
@@ -27,15 +33,6 @@ namespace SecretHitler.Networking
                 obj.Username = split[0];
                 obj.Message = split[1];
                 return obj;
-            }
-            public override byte[] GenerateByteStream(NetworkObject obj)
-            {
-                NetworkMessageObject mObj = obj as NetworkMessageObject;
-                if (mObj == null)
-                    return base.GenerateByteStream(obj);
-                List<byte> bytes = Header(mObj);
-                bytes.AddRange(Encoding.UTF32.GetBytes($"{EncodeString(mObj.Username)}{SEPERATOR}{EncodeString(mObj.Message)}"));
-                return bytes.ToArray();
             }
         }
     }

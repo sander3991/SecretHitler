@@ -13,6 +13,8 @@ namespace SecretHitler.Logic
         public CardMembership Membership { get; set; }
         public CardBallotYes Yes { get; set; }
         public CardBallotNo No { get; set; }
+        public CardBallotYes VoteCast { get; set; }
+
         public PlayerHand(CardSecretRole role, CardMembership membership, bool flipped = false)
         {
             Role = role;

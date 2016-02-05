@@ -17,29 +17,26 @@ namespace SecretHitler.Networking
             GameState = state;
         }
 
-        public class GameStateObjectReader : DefaultObjectReader
+        public class GameStateObjectReader : AbstractObjectReader<NetworkGameStateObject>
         {
-            public override byte[] GenerateByteStream(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkGameStateObject obj)
             {
-                var gameStateObj = obj as NetworkGameStateObject;
-                if (gameStateObj == null) return base.GenerateByteStream(obj);
-                var seatedPlayers = gameStateObj.GameState.SeatedPlayers;
+                var seatedPlayers = obj.GameState.SeatedPlayers;
                 string[] players = new string[seatedPlayers.Length];
                 for (var i = 0; i < seatedPlayers.Length; i++)
                     players[i] = seatedPlayers[i] == null ? null : EncodeString(seatedPlayers[i].Name);
-                gameStateObj.Message = string.Join(SEPERATOR.ToString(), players);
-                var bytes = base.GenerateByteStream(gameStateObj);
-                gameStateObj.Message = null;
-                return bytes;
+                var bytes = Header(obj);
+                bytes.AddRange(Encoding.ASCII.GetBytes(string.Join(SEPERATOR.ToString(), players)));
+                return bytes.ToArray();
             }
-            public override NetworkObject GenerateObject(byte[] bytes)
+            public override NetworkGameStateObject DecodeObject(byte[] bytes)
             {
                 var gameStateObj = new NetworkGameStateObject();
                 DecodeHeader(gameStateObj, bytes);
                 var lastByte = FindLastByte(bytes);
                 var str = Encoding.ASCII.GetString(bytes, CONTENTINDEX, lastByte - CONTENTINDEX);
                 var players = str.Split(SEPERATOR);
-                var gameState = new GameState();
+                var gameState = new NetworkGameState();
                 gameState.SeatedPlayers = new Player[10];
                 for(var i = 0; i < players.Length; i++)
                     gameState.SeatedPlayers[i] = string.IsNullOrEmpty(players[i]) ? null : Player.GetPlayer(players[i]);

@@ -24,9 +24,9 @@ namespace SecretHitler.Logic
             }
         }
         public static ChatHandler Instance { get; private set; }
-        private GameState state;
+        private ClientGameState state;
         private Dictionary<Player, PlayerArgs> TextObjects = new Dictionary<Player, PlayerArgs>();
-        private ChatHandler(GameState state)
+        private ChatHandler(ClientGameState state)
         {
             this.state = state;
             state.Client.OnConnected += Client_OnConnected;
@@ -37,7 +37,7 @@ namespace SecretHitler.Logic
             obj.ReceiveHandler.OnReceive += OnReceive;
         }
 
-        public static ChatHandler Initialize(GameState state)
+        public static ChatHandler Initialize(ClientGameState state)
         {
             if (Instance == null)
             {

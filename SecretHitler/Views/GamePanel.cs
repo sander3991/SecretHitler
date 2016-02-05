@@ -17,7 +17,7 @@ namespace SecretHitler.Views
     {
         public LinkedList<GameObject> Objects { get; private set; } = new LinkedList<GameObject>();
         public PlayArea[] PlayerAreas { get; } = new PlayArea[10];
-        private GameState state;
+        private ClientGameState state;
         private Point mousePos;
         private IZoomable zoomable;
         private IHooverable hover;
@@ -25,7 +25,7 @@ namespace SecretHitler.Views
         {
             InitializeComponent();
         }
-        public void InitializeState(GameState state)
+        public void InitializeState(ClientGameState state)
         {
             this.state = state;
             state.OnStart += DefineBoards;
@@ -41,6 +41,24 @@ namespace SecretHitler.Views
             {
                 Objects.AddFirst(new LiberalBoard() { Location = new Point(xLocation - Board.DEFAULTSIZE.Width, yLocation) });
                 Objects.AddFirst(new FascistBoard(obj.PlayerCount) { Location = new Point(xLocation, yLocation) });
+            }
+        }
+
+        internal void InitializePiles(Deck<CardPolicy> drawPile, Deck<CardPolicy> discardPile)
+        {
+            var middleX = Width / 2;
+            var yLocation = Height / 2 - (Board.DEFAULTSIZE.Height / 2) + 20;
+            var boardSize = Board.DEFAULTSIZE;
+            drawPile.Location = new Point(middleX - boardSize.Width - Card.DEFAULTCARDSIZE.Width - 20, yLocation);
+            discardPile.Location = new Point(middleX + boardSize.Width + 20, yLocation);
+            var drawSize = Deck<Card>.DRAWPILESIZE;
+            var offset = new Point(-(drawSize.Width - Card.DEFAULTCARDSIZE.Width) / 2, -(drawSize.Height - Card.DEFAULTCARDSIZE.Height) / 2 + 5);
+            drawPile.SetBackground(Properties.Resources.draw_pile.CutToSize(drawSize), offset);
+            discardPile.SetBackground(Properties.Resources.discard_pile.CutToSize(drawSize), offset);
+            lock (Objects)
+            {
+                Objects.AddFirst(drawPile);
+                Objects.AddFirst(discardPile);
             }
         }
 
@@ -65,6 +83,11 @@ namespace SecretHitler.Views
                 Objects.AddLast(area);
                 PlayerAreas[i] = area;
             }
+        }
+
+        private void GeneratePiles()
+        {
+
         }
         private void GeneratePlacards()
         {
@@ -95,7 +118,7 @@ namespace SecretHitler.Views
                         rem.Add(obj);
                     }
                 }
-                if(rem != null)
+                if (rem != null)
                     foreach (var obj in rem)
                     {
                         Objects.Remove(obj);
@@ -142,7 +165,7 @@ namespace SecretHitler.Views
 
                 }
                 if (lastBitmap != null)
-                    lock(lastBitmap)
+                    lock (lastBitmap)
                         g.DrawImageUnscaled(lastBitmap.Item2, new Point(Math.Max(mousePos.X - 200, 0), Math.Max(mousePos.Y - 200, 0)));
             }
 
@@ -165,7 +188,7 @@ namespace SecretHitler.Views
             foreach (var obj in Objects)
                 if (obj.ClickLocation.IsPointIn(mousePos))
                 {
-                    if(obj is IZoomable)
+                    if (obj is IZoomable)
                     {
                         if (zoomable == obj)
                             return;

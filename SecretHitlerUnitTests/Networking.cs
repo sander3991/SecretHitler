@@ -50,7 +50,7 @@ namespace SecretHitlerUnitTests
         [TestMethod]
         public void NetworkGameStateObject()
         {
-            var gamestate = new GameState();
+            var gamestate = new ServerGameState(null);
             gamestate.SeatedPlayers = new Player[10];
             var player1 = Player.GetPlayerServerSide("Sander");
             var player2 = Player.GetPlayerServerSide("Stefan");
@@ -164,6 +164,40 @@ namespace SecretHitlerUnitTests
             Assert.AreEqual(newPlayerObj.Player.Hand.Membership.IsFascist, obj.Player.Hand.Membership.IsFascist);
             CompareDefaultObject(obj, generatedObj);
         }
+        [TestMethod]
+        public void NetworkBoolObject()
+        {
+            var boolObj = new NetworkBoolObject(ServerCommands.CastVote, true) { Message = "Test"};
+            var decoder = new NetworkBoolObject.BoolObjectReader();
+            var bytes = decoder.GenerateByteStream(boolObj);
+            var generated = decoder.GenerateObject(bytes) as NetworkBoolObject;
+            Assert.IsTrue(generated.Value);
+            Assert.AreEqual("Test", generated.Message);
+            boolObj = new NetworkBoolObject(ServerCommands.CastVote, false);
+            decoder = new NetworkBoolObject.BoolObjectReader();
+            bytes = decoder.GenerateByteStream(boolObj);
+            generated = decoder.GenerateObject(bytes) as NetworkBoolObject;
+            Assert.IsFalse(generated.Value);
+            CompareDefaultObject(boolObj, generated);
+        }
 
+        [TestMethod]
+        public void NetworkVoteResultObject()
+        {
+            var votes = new bool[]
+            {
+                true, true, true, true, false, false, true
+            };
+            var obj = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, votes);
+            var decoder = new NetworkVoteResultObject.VoteResultObjectDecoder();
+            var bytes = decoder.GenerateByteStream(obj);
+            var generated = decoder.GenerateObject(bytes) as NetworkVoteResultObject;
+            Assert.AreEqual(votes.Length, generated.Votes.Length);
+            for(var i = 0; i < votes.Length; i++)
+            {
+                Assert.AreEqual(votes[i], generated.Votes[i]);
+            }
+            CompareDefaultObject(obj, generated);
+        }
     }
 }

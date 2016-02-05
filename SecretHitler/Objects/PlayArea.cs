@@ -19,45 +19,49 @@ namespace SecretHitler.Objects
             Right,
             Half
         }
-        public static readonly Size DEFAULTSIZE = new Size(320, 200);
-        private RotateType rotateType;
-        protected GameState state;
-        protected Player Player { get { return state.SeatedPlayers[ID]; } }
-        public int ID { get; private set; }
-        public Point PreviousPlacardLoc { get; private set; }
-        public Point CurrentPlacardLoc { get; private set; }
-        public override Rectangle ClickLocation { get { return Rotate(DrawLocation, rotateType); } }
         public static PlacardChancellor PlacardChancellor = new PlacardChancellor();
         public static PlacardPrevChancellor PlacardPrevChancellor = new PlacardPrevChancellor();
         public static PlacardPresident PlacardPresident = new PlacardPresident();
         public static PlacardPrevPresident PlacardPrevPresident = new PlacardPrevPresident();
-        private Placard current;
-        private Placard previous;
-        public Placard Current
-        {
-            get { return current; }
-            set { current = value; if(current != null) current.Location = Location; }
-        }
-        public Placard Previous
-        {
-            get { return previous; }
-            set { previous = value; if(previous != null) previous.Location = new Point(Location.X + DEFAULTSIZE.Width - Placard.DEFAULTSIZE.Width, Location.Y); }
-        }
-        private bool isHovering = false;
-        public event Action<PlayArea> OnClick;
-        private static Brush fontBrush = new SolidBrush(Color.FromArgb(67, 122, 87));
-        private static Brush backgroundBrush = new SolidBrush(Color.FromArgb(101, 150, 119));
-        private Font playerNameFont;
+        public static readonly Size DEFAULTSIZE = new Size(320, 200);
+        public static Brush BackgroundBrush = new SolidBrush(Color.FromArgb(101, 150, 119));
 
+        public event Action<PlayArea> OnClick;
+
+        public override Rectangle ClickLocation { get { return Rotate(DrawLocation, rotateType); } }
         public override Size Size
         {
             get { return DEFAULTSIZE; }
             set { throw new InvalidOperationException("Can't set size"); }
         }
+        public int ID { get; private set; }
+        public Point PreviousPlacardLoc { get; private set; }
+        public Point CurrentPlacardLoc { get; private set; }
+        private Placard current;
+        public Placard Current
+        {
+            get { return current; }
+            set { current = value; if(current != null) current.Location = Location; }
+        }
+        private Placard previous;
+        public Placard Previous
+        {
+            get { return previous; }
+            set { previous = value; if(previous != null) previous.Location = new Point(Location.X + DEFAULTSIZE.Width - Placard.DEFAULTSIZE.Width, Location.Y); }
+        }
+
+        protected Player Player { get { return State.SeatedPlayers[ID]; } }
+        protected GameState State { get; }
+
+        private CardBallot votedCard;
+        private RotateType rotateType;
+        private bool isHovering = false;
+        private static Brush fontBrush = new SolidBrush(Color.FromArgb(67, 122, 87));
+        private Font playerNameFont;
 
         public PlayArea(GameState state, int ID)
         {
-            this.state = state;
+            State = state;
             this.ID = ID;
         }
 
@@ -82,6 +86,7 @@ namespace SecretHitler.Objects
                 fontBrush,
                 Location);
         }
+
         private void DrawPlayerHand(Graphics g)
         {
             var hand = Player.Hand;
@@ -98,6 +103,15 @@ namespace SecretHitler.Objects
             }
         }
 
+        public void SetVoteCard(CardBallot card)
+        {
+            if (ID >= 3 && ID <= 4)
+                card.Location = new Point(Location.X, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
+            else
+                card.Location = new Point(Location.X + Size.Width - Card.DEFAULTCARDSIZE.Width, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
+            votedCard = card;
+        }
+
         public override void Draw(Graphics g)
         {
             if (Player != null)
@@ -108,9 +122,10 @@ namespace SecretHitler.Objects
                     g.RotateTransform(Angle(rotateType));
                 g.TranslateTransform(-(Location.X + Size.Width / 2), -(Location.Y + Size.Height / 2));
                 if (isHovering && OnClick != null)
-                    g.FillRectangle(backgroundBrush, DrawLocation);
+                    g.FillRectangle(BackgroundBrush, DrawLocation);
                 DrawPlayerName(g);
                 DrawPlayerHand(g);
+                votedCard?.Draw(g);
                 g.EndContainer(container);
             }
         }
@@ -133,6 +148,11 @@ namespace SecretHitler.Objects
                 rotateType = RotateType.Left;
             else //9
                 rotateType = RotateType.Right;
+        }
+
+        internal void ResetState()
+        {
+            OnClick = null;
         }
 
         private int Angle(RotateType type, bool reverse = false)
@@ -184,6 +204,7 @@ namespace SecretHitler.Objects
                     {
                         if (!isLeftClick)
                             card.Flipped = !card.Flipped;
+                        card.Clicked();
 
                     }
             }

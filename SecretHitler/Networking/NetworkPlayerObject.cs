@@ -16,17 +16,15 @@ namespace SecretHitler.Networking
             Player = player;
         }
         private NetworkPlayerObject() { }
-        public class PlayerObjectReader : DefaultObjectReader
+        public class PlayerObjectReader : AbstractObjectReader<NetworkPlayerObject>
         {
-            public override byte[] GenerateByteStream(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkPlayerObject obj)
             {
-                var playerObj = obj as NetworkPlayerObject;
-                if (playerObj == null) return base.GenerateByteStream(obj);
-                var bytes = Header(playerObj);
-                bytes.AddRange(Encoding.ASCII.GetBytes(playerObj.Player.Name));
+                var bytes = Header(obj);
+                bytes.AddRange(Encoding.ASCII.GetBytes(obj.Player.Name));
                 return bytes.ToArray();
             }
-            public override NetworkObject GenerateObject(byte[] bytes)
+            public override NetworkPlayerObject DecodeObject(byte[] bytes)
             {
                 var playerObj = new NetworkPlayerObject();
                 DecodeHeader(playerObj, bytes);

@@ -20,20 +20,16 @@ namespace SecretHitler.Networking
         }
         private NetworkRevealRoleObject() { }
 
-        public class RevealRoleObjectReader : DefaultObjectReader
+        public class RevealRoleObjectReader : AbstractObjectReader<NetworkRevealRoleObject>
         {
-            public override byte[] GenerateByteStream(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkRevealRoleObject obj)
             {
-                var revealObj = obj as NetworkRevealRoleObject;
-                if (revealObj == null)
-                    return base.GenerateByteStream(obj);
-
-                var bytes = Header(revealObj);
-                bytes.Add(revealObj.SecretRole.ToByte());
-                bytes.AddRange(Encoding.ASCII.GetBytes(revealObj.Player.Name));
+                var bytes = Header(obj);
+                bytes.Add(obj.SecretRole.ToByte());
+                bytes.AddRange(Encoding.ASCII.GetBytes(obj.Player.Name));
                 return bytes.ToArray();
             }
-            public override NetworkObject GenerateObject(byte[] bytes)
+            public override NetworkRevealRoleObject DecodeObject(byte[] bytes)
             {
                 var revealObj = new NetworkRevealRoleObject();
                 DecodeHeader(revealObj, bytes);

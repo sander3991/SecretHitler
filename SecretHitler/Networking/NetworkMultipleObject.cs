@@ -21,19 +21,16 @@ namespace SecretHitler.Networking
         }
         public void AddObject(NetworkObject obj) => objects.Add(obj);
 
-        public class MultipleObjectReader : DefaultObjectReader
+        public class MultipleObjectReader : AbstractObjectReader<NetworkMultipleObject>
         {
-            public override byte[] GenerateByteStream(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkMultipleObject obj)
             {
-                var mult = obj as NetworkMultipleObject;
-                if (mult == null)
-                    return base.GenerateByteStream(obj);
-                if (mult.objects.Count == 0)
+                if (obj.objects.Count == 0)
                     throw new InvalidOperationException("Cannot send an empty object!");
-                if (mult.objects.Count == 1)
-                    return mult.objects[0].Command.GetDecoder().GenerateByteStream(mult.objects[0]);
-                var bytes = Header(mult);
-                foreach(var netObj in mult.objects)
+                if (obj.objects.Count == 1)
+                    return obj.objects[0].Command.GetDecoder().GenerateByteStream(obj.objects[0]);
+                var bytes = Header(obj);
+                foreach(var netObj in obj.objects)
                 {
                     var thisBytes = netObj.Command.GetDecoder().GenerateByteStream(netObj);
                     bytes.AddRange(BitConverter.GetBytes(thisBytes.Length));
@@ -41,7 +38,7 @@ namespace SecretHitler.Networking
                 }
                 return bytes.ToArray();
             }
-            public override NetworkObject GenerateObject(byte[] bytes)
+            public override NetworkMultipleObject DecodeObject(byte[] bytes)
             {
                 var mult = new NetworkMultipleObject();
                 DecodeHeader(mult, bytes);

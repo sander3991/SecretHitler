@@ -15,8 +15,9 @@ namespace SecretHitler.Views
 {
     public partial class Game : Form
     {
-        public GameState GameState { get; private set; }
+        public ClientGameState GameState { get; private set; }
         public ChatHandler Chat { get { return GameState.Chat; } }
+        private Server server;
         private delegate void SetTextDelegate(string text);
         public Game()
         {
@@ -27,7 +28,6 @@ namespace SecretHitler.Views
             InitializeComponent();
             var client = Client.GetClient(this, dialog.Username);
             client.Name = dialog.Username;
-            Server server = null;
             if (!dialog.Join)
             {
                 //Host code
@@ -35,7 +35,7 @@ namespace SecretHitler.Views
                 server.Start();
                 while (!server.Running) ;
             }
-            GameState = new GameState(gamePanel, client, server, this);
+            GameState = new ClientGameState(gamePanel, client, this, server != null);
             gamePanel.InitializeState(GameState);
             client.Connect(dialog.IPAddress);
             statusLabel.Parent = gamePanel;
@@ -60,21 +60,19 @@ namespace SecretHitler.Views
         private void Game_Load(object sender, EventArgs e)
         {
             AcceptButton = hiddenButton;
-            if(GameState.Server == null)
-            {
+            if(!GameState.IsHost)
                 startBtn.Visible = false;
-            }
         }
 
         private void startBtn_Click(object sender, EventArgs e)
         {
-            if(GameState.PlayerCount < 0) //TODO: Change to 5
+            if(GameState.PlayerCount < 5) //TODO: Change to 5
             {
                 startGameError.Text = "A minimum of 5 players is required to launch the game";
                 startGameError.Visible = true;
                 return;
             }
-            GameState.Server.LaunchGame();
+            server?.LaunchGame();
         }
 
         internal void OnEnterPressed(object sender, EventArgs e)
@@ -96,6 +94,15 @@ namespace SecretHitler.Views
         {
             if(!ChatHistory.IsOpen)
             new ChatHistory().Show();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (server != null)
+            {
+                new DebugConsole(server, server.GameState).Show();
+            }
+
         }
     }
 }

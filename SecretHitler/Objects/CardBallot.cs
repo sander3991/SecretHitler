@@ -43,4 +43,17 @@ namespace SecretHitler.Objects
             get { return false; }
         }
     }
+    public class CardBallotUnknown : CardBallot
+    {
+        private static Bitmap FRONT = Properties.Resources.ballot_cards.FromSprite(DEFAULTCARDSIZE, 2, 2, 3);
+        public override Bitmap Front
+        {
+            get { return FRONT; }
+        }
+
+        public override bool Yes
+        {
+            get { return false; }
+        }
+    }
 }

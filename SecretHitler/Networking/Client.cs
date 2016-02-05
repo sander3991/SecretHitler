@@ -47,7 +47,6 @@ namespace SecretHitler.Networking
             ipEndPoint = new IPEndPoint(address, SecretHitlerGame.DEFAULTPORT);
             IPEndPoint clientPoint = new IPEndPoint(IPAddress.Any, SecretHitlerGame.DEFAULTPORT + 1);
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //socket.Bind(clientPoint);
             ConfigureSocket(socket);
             ReceiveHandler = new ReceiveMsgHandler(this);
             socket.Connect(ipEndPoint);
@@ -93,7 +92,10 @@ namespace SecretHitler.Networking
             Instance = new Client(game, username);
             return Instance;
         }
-
+        public void CastVote(bool yes)
+        {
+            new SendMsgHandler(new NetworkBoolObject(ServerCommands.CastVote, yes), this);
+        }
         public void SendMessage(string str, Action<NetworkObject> callback = null)
         {
             if (string.IsNullOrEmpty(str)) return;
@@ -121,7 +123,7 @@ namespace SecretHitler.Networking
                     Thread.CurrentThread.Name = "Receive Message Handler";
                 while (client.socket.Connected)
                 {
-                    var receive = NetworkObjectDecoders.Receive(client.socket);
+                    var receive = DecodeNetworkObjects.Receive(client.socket);
                     client.connected = true;
                     try
                     {
@@ -144,6 +146,7 @@ namespace SecretHitler.Networking
             private NetworkObject obj;
             private Client client;
             private Action<NetworkObject> callback;
+            private bool received;
             public SendMsgHandler(NetworkObject obj, Client client, Action<NetworkObject> callback = null)
             {
                 this.obj = obj;
@@ -157,17 +160,24 @@ namespace SecretHitler.Networking
                 if (Thread.CurrentThread.Name == null)
                     Thread.CurrentThread.Name = "Send Message Handler";
                 client.ReceiveHandler.OnReceive += ConfirmReceived;
-                obj.Send(client.socket);
+                int timeout = 0;
+                while (!received)
+                {
+                    obj.Send(client.socket);
+                    Thread.Sleep(100);
+                    if (++timeout == 10)
+                        throw new TimeoutException("The message was not received!");
+                }
             }
             private void ConfirmReceived(NetworkObject response)
             {
                 if(response.ID == obj.ID)
                 {
+                    received = true;
                     client.ReceiveHandler.OnReceive -= ConfirmReceived;
                     callback?.Invoke(response);
                 }
             }
-
         }
     }
 }

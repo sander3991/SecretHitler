@@ -12,6 +12,7 @@ namespace SecretHitler.Logic
     {
         public string Name { get; set; }
         public PlayerHand Hand { get; set; }
+        public PlayArea PlayArea { get; set; }
         private Player(string name)
         {
             Name = name;
