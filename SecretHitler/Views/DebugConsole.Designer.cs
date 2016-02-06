@@ -41,6 +41,14 @@
             this.castVoteYes = new System.Windows.Forms.Button();
             this.castVoteNo = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.getPolicyChoice = new System.Windows.Forms.Button();
+            this.policyCard1 = new System.Windows.Forms.Button();
+            this.policyCard2 = new System.Windows.Forms.Button();
+            this.policyCard3 = new System.Windows.Forms.Button();
+            this.confirmReadBtn = new System.Windows.Forms.Button();
+            this.confirmKillPlayer = new System.Windows.Forms.Button();
+            this.choosePresidentBtn = new System.Windows.Forms.Button();
+            this.investigatePlayerBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // playerButton1
@@ -183,11 +191,102 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.PickChancellor);
             // 
+            // getPolicyChoice
+            // 
+            this.getPolicyChoice.Location = new System.Drawing.Point(13, 125);
+            this.getPolicyChoice.Name = "getPolicyChoice";
+            this.getPolicyChoice.Size = new System.Drawing.Size(127, 23);
+            this.getPolicyChoice.TabIndex = 13;
+            this.getPolicyChoice.Text = "Get Policy Choice";
+            this.getPolicyChoice.UseVisualStyleBackColor = true;
+            this.getPolicyChoice.Click += new System.EventHandler(this.getPolicyChoice_Click);
+            // 
+            // policyCard1
+            // 
+            this.policyCard1.Enabled = false;
+            this.policyCard1.Location = new System.Drawing.Point(146, 125);
+            this.policyCard1.Name = "policyCard1";
+            this.policyCard1.Size = new System.Drawing.Size(60, 23);
+            this.policyCard1.TabIndex = 14;
+            this.policyCard1.Text = "Fascist";
+            this.policyCard1.UseVisualStyleBackColor = true;
+            this.policyCard1.Click += new System.EventHandler(this.PickPolicyCard);
+            // 
+            // policyCard2
+            // 
+            this.policyCard2.Enabled = false;
+            this.policyCard2.Location = new System.Drawing.Point(212, 125);
+            this.policyCard2.Name = "policyCard2";
+            this.policyCard2.Size = new System.Drawing.Size(60, 23);
+            this.policyCard2.TabIndex = 15;
+            this.policyCard2.Text = "Fascist";
+            this.policyCard2.UseVisualStyleBackColor = true;
+            this.policyCard2.Click += new System.EventHandler(this.PickPolicyCard);
+            // 
+            // policyCard3
+            // 
+            this.policyCard3.Enabled = false;
+            this.policyCard3.Location = new System.Drawing.Point(278, 125);
+            this.policyCard3.Name = "policyCard3";
+            this.policyCard3.Size = new System.Drawing.Size(60, 23);
+            this.policyCard3.TabIndex = 16;
+            this.policyCard3.Text = "Fascist";
+            this.policyCard3.UseVisualStyleBackColor = true;
+            this.policyCard3.Click += new System.EventHandler(this.PickPolicyCard);
+            // 
+            // confirmReadBtn
+            // 
+            this.confirmReadBtn.Location = new System.Drawing.Point(12, 176);
+            this.confirmReadBtn.Name = "confirmReadBtn";
+            this.confirmReadBtn.Size = new System.Drawing.Size(127, 23);
+            this.confirmReadBtn.TabIndex = 17;
+            this.confirmReadBtn.Text = "Confirm Cards read";
+            this.confirmReadBtn.UseVisualStyleBackColor = true;
+            this.confirmReadBtn.Click += new System.EventHandler(this.confirmReadBtn_Click);
+            // 
+            // confirmKillPlayer
+            // 
+            this.confirmKillPlayer.Location = new System.Drawing.Point(145, 176);
+            this.confirmKillPlayer.Name = "confirmKillPlayer";
+            this.confirmKillPlayer.Size = new System.Drawing.Size(80, 23);
+            this.confirmKillPlayer.TabIndex = 18;
+            this.confirmKillPlayer.Text = "Kill Player";
+            this.confirmKillPlayer.UseVisualStyleBackColor = true;
+            this.confirmKillPlayer.Click += new System.EventHandler(this.confirmKillPlayer_Click);
+            // 
+            // choosePresidentBtn
+            // 
+            this.choosePresidentBtn.Location = new System.Drawing.Point(233, 176);
+            this.choosePresidentBtn.Name = "choosePresidentBtn";
+            this.choosePresidentBtn.Size = new System.Drawing.Size(98, 23);
+            this.choosePresidentBtn.TabIndex = 19;
+            this.choosePresidentBtn.Text = "Choose President";
+            this.choosePresidentBtn.UseVisualStyleBackColor = true;
+            this.choosePresidentBtn.Click += new System.EventHandler(this.choosePresidentBtn_Click);
+            // 
+            // investigatePlayerBtn
+            // 
+            this.investigatePlayerBtn.Location = new System.Drawing.Point(337, 176);
+            this.investigatePlayerBtn.Name = "investigatePlayerBtn";
+            this.investigatePlayerBtn.Size = new System.Drawing.Size(135, 23);
+            this.investigatePlayerBtn.TabIndex = 20;
+            this.investigatePlayerBtn.Text = "Investigate Player Role";
+            this.investigatePlayerBtn.UseVisualStyleBackColor = true;
+            this.investigatePlayerBtn.Click += new System.EventHandler(this.investigatePlayerBtn_Click);
+            // 
             // DebugConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(629, 446);
+            this.Controls.Add(this.investigatePlayerBtn);
+            this.Controls.Add(this.choosePresidentBtn);
+            this.Controls.Add(this.confirmKillPlayer);
+            this.Controls.Add(this.confirmReadBtn);
+            this.Controls.Add(this.policyCard3);
+            this.Controls.Add(this.policyCard2);
+            this.Controls.Add(this.policyCard1);
+            this.Controls.Add(this.getPolicyChoice);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.castVoteNo);
             this.Controls.Add(this.castVoteYes);
@@ -222,5 +321,13 @@
         private System.Windows.Forms.Button castVoteYes;
         private System.Windows.Forms.Button castVoteNo;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button getPolicyChoice;
+        private System.Windows.Forms.Button policyCard1;
+        private System.Windows.Forms.Button policyCard2;
+        private System.Windows.Forms.Button policyCard3;
+        private System.Windows.Forms.Button confirmReadBtn;
+        private System.Windows.Forms.Button confirmKillPlayer;
+        private System.Windows.Forms.Button choosePresidentBtn;
+        private System.Windows.Forms.Button investigatePlayerBtn;
     }
 }

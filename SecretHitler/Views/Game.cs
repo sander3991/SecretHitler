@@ -18,6 +18,7 @@ namespace SecretHitler.Views
         public ClientGameState GameState { get; private set; }
         public ChatHandler Chat { get { return GameState.Chat; } }
         private Server server;
+        private Client client;
         private delegate void SetTextDelegate(string text);
         public Game()
         {
@@ -26,7 +27,7 @@ namespace SecretHitler.Views
         public Game(ServerClientDialog dialog)
         {
             InitializeComponent();
-            var client = Client.GetClient(this, dialog.Username);
+            client = Client.GetClient(this, dialog.Username);
             client.Name = dialog.Username;
             if (!dialog.Join)
             {
@@ -72,7 +73,8 @@ namespace SecretHitler.Views
                 startGameError.Visible = true;
                 return;
             }
-            server?.LaunchGame();
+            server.LaunchGame();
+            startBtn.Hide();
         }
 
         internal void OnEnterPressed(object sender, EventArgs e)
@@ -100,9 +102,14 @@ namespace SecretHitler.Views
         {
             if (server != null)
             {
-                new DebugConsole(server, server.GameState).Show();
+                new DebugConsole(server, server.GameState, client, GameState).Show();
             }
 
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            new Netviewer(server, client).Show();
         }
     }
 }

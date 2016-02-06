@@ -46,7 +46,7 @@ namespace SecretHitler.Objects
             return card;
         }
 
-        public void ReturnCard(T card)
+        public void AddCard(T card)
         {
             if ((nextCard + 1) == DeckSize)
                 throw new InvalidOperationException("There are no more stack slots available");
@@ -73,7 +73,7 @@ namespace SecretHitler.Objects
                     g.DrawImage(img, new Point(Location.X, Location.Y - i * cardStackHeight));
                 else
                     g.DrawImage(img, destRect: stackLocation, srcRect: srcRect, srcUnit: GraphicsUnit.Pixel);
-                g.DrawLine(Pens.Black, stackLocation.X, stackLocation.Y + stackLocation.Height, stackLocation.X + stackLocation.Width, stackLocation.Y + stackLocation.Height);
+                g.DrawLine(Pens.Black, stackLocation.X, stackLocation.Y + stackLocation.Height - 1, stackLocation.X + stackLocation.Width, stackLocation.Y + stackLocation.Height - 1);
             }
             if (hover)
             {

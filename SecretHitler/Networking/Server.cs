@@ -15,46 +15,25 @@ using System.Windows.Forms;
 
 namespace SecretHitler.Networking
 {
-    public enum ServerCommands : byte
-    {
-        None = 0x00,
-        OK = 0x01,
-        Connect = 0x02,
-        Message = 0x03,
-        ReceiveMessage = 0x04,
-        PlayerConnected = 0x05,
-        PlayerDisconnected = 0x06,
-        Full = 0x07,
-        SendGameState = 0x08,
-        GetGameState = 0x09,
-        AnnounceCard = 0x0A,
-        RevealRole = 0x0B,
-        Multiple = 0x0C,
-        AnnouncePresident = 0x0D,
-        AnnounceChancellor = 0x0E,
-        CastVote = 0x0F,
-        PlayerVoted = 0x10,
-        AnnounceVotes = 0x11,
-    }
     public class Server
     {
-
         delegate void SetTextCallback(string txt);
         private Game game;
         internal ServerGameState GameState { get; private set; }
-        public event Action<Player, NetworkObject> OnReceive;
+        public event Action<Player, NetworkObject> OnSent;
         private TcpListener serverSocket;
         private PingSockets pinger;
         private Thread serverThread;
-        private Dictionary<string, TcpClient> connectedClients = new Dictionary<string, TcpClient>();
+        private Dictionary<Player, TcpClient> connectedClients = new Dictionary<Player, TcpClient>();
+        public ServerMessageHandler ServerMessageHandler { get; }
 
         private Server(Game game, GamePanel panel, Client client)
         {
             this.game = game;
             GameState = new ServerGameState(this);
-            for (var i = 1; i < 10; i++)
+            for (var i = 1; i < 5; i++)
                 GameState.SeatedPlayers[i] = Player.GetPlayerServerSide($"Temp {i}");
-
+            ServerMessageHandler = new ServerMessageHandler(this, GameState);
         }
         public static Server Instance { get; private set; }
         public bool Running { get; private set; }
@@ -66,6 +45,12 @@ namespace SecretHitler.Networking
             if (Instance == null)
                 Instance = new Server(game, panel, client);
             return Instance;
+        }
+
+        private void SendMessage(Player player, NetworkObject obj)
+        {
+            obj.Send(GetPlayerClient(player));
+            OnSent?.Invoke(player, obj);
         }
 
         public void LaunchGame()
@@ -113,13 +98,14 @@ namespace SecretHitler.Networking
                 if (player.Hand.Membership.IsFascist && (playerCount <= 6 || !player.Hand.Role.IsHitler))
                 {
                     foreach (Player announcePlayer in fascists)
-                        if (player != announcePlayer && connectedClients.ContainsKey(player.Name))
+                        if (player != announcePlayer && connectedClients.ContainsKey(player))
                             multipleObjects.AddObject(new NetworkRevealRoleObject(announcePlayer));
                 }
                 multipleObjects.AddObject(presidentMsg);
-                if (connectedClients.ContainsKey(player.Name))
-                    multipleObjects.Send(connectedClients[player.Name]);
+                SendMessage(player, multipleObjects);
             }
+
+            GameState.FascistActions = FascistAction.GetActionsForPlayers(playerCount);
         }
 
         public void Start()
@@ -154,26 +140,29 @@ namespace SecretHitler.Networking
                 {
                     var tcpClient = serverSocket.AcceptTcpClient();
                     ConfigureTcpClient(tcpClient);
-                    var networkObject = DecodeNetworkObjects.Receive(tcpClient);
+                    var networkObject = DecodeNetworkObjects.Receive(tcpClient, true);
                     var newUser = Player.GetPlayerServerSide(networkObject.Message);
                     if (GameState.PlayerCount == 10)
                     {
-                        new NetworkObject(ServerCommands.Full).Send(tcpClient);
+                        var fullmsg = new NetworkObject(ServerCommands.Full);
+                        fullmsg.Send(tcpClient);
+                        OnSent?.Invoke(newUser, fullmsg);
                         tcpClient.Close();
                         continue;
                     }
                     int i = 2;
                     lock (connectedClients)
                     {
-                        while (connectedClients.ContainsKey(newUser.Name))
+                        while (connectedClients.ContainsKey(newUser))
                             newUser = Player.GetPlayerServerSide($"{networkObject.Message}_{i++}");
                         int seat = GameState.SeatPlayer(newUser);
                         var reply = new NetworkObject(ServerCommands.OK, newUser.Name, networkObject.ID);
                         reply.Send(tcpClient);
+                        OnSent?.Invoke(newUser, reply);
                         Broadcast(new NetworkNewPlayerObject(ServerCommands.PlayerConnected, newUser, seat));
-                        connectedClients.Add(newUser.Name, tcpClient);
+                        connectedClients.Add(newUser, tcpClient);
                     }
-                    new SocketListener(this, tcpClient, newUser);
+                    new SocketListener(ServerMessageHandler, tcpClient, newUser);
                 }
                 catch (Exception ex) when (ex is SocketException || ex is ObjectDisposedException)
                 {
@@ -182,6 +171,7 @@ namespace SecretHitler.Networking
                 }
             }
         }
+
         private void ConfigureSocket(Socket socket)
         {
             socket.SendBufferSize = 8192;
@@ -194,13 +184,21 @@ namespace SecretHitler.Networking
             client.ReceiveBufferSize = 8192;
         }
 
-        private void Broadcast(NetworkObject obj, TcpClient ignore = null)
+        private void Broadcast(NetworkObject obj, TcpClient ignore = null, Player ignorePlayer = null)
         {
             lock (connectedClients)
-                foreach (var connected in connectedClients.Values)
-                    if (connected.Connected && (ignore == null || connected != ignore))
-                        obj.Send(connected);
+                foreach (var player in connectedClients.Keys)
+                {
+                    var connected = connectedClients[player];
+                    if (connected.Connected && (ignorePlayer == null || ignorePlayer != player) && (ignore == null || connected != ignore))
+                        SendMessage(player, obj);
+                }
+        }
 
+        internal void SendResponse(ServerResponse response)
+        {
+            foreach (var player in connectedClients.Keys)
+                response.GetResponse(player)?.Send(connectedClients[player]);
         }
 
         public void Stop()
@@ -208,63 +206,21 @@ namespace SecretHitler.Networking
             Running = false;
         }
 
-        internal void HandleMessage(NetworkObject request, TcpClient sentBy, Player player)
+        private TcpClient GetPlayerClient(Player player)
         {
-            var multObj = new NetworkMultipleObject(new NetworkObject(ServerCommands.OK, null, request.ID));
-            switch (request.Command)
-            {
-                case ServerCommands.Message:
-                    var msgResponse = request as NetworkMessageObject;
-                    var response = new NetworkMessageObject(msgResponse.Username, msgResponse.Message, sendToServer: false);
-                    multObj.AddObject(response);
-                    Broadcast(response, ignore: sentBy);
-                    break;
-                case ServerCommands.GetGameState:
-                    multObj.AddObject(new NetworkGameStateObject(ServerCommands.SendGameState, GameState));
-                    break;
-                case ServerCommands.AnnounceChancellor:
-                    var playerResponse = request as NetworkPlayerObject;
-                    GameState.ResetVotes();
-                    if (GameState.President == player)
-                    {
-                        GameState.SetChancellor(playerResponse.Player);
-                        multObj.AddObject(playerResponse);
-                        Broadcast(playerResponse, ignore: sentBy);
-                    }
-                    break;
-                case ServerCommands.CastVote:
-                    var boolObj = request as NetworkBoolObject;
-                    GameState.SetVote(player, boolObj.Value);
-                    var playerVoted = new NetworkPlayerObject(ServerCommands.PlayerVoted, player);
-                    multObj.AddObject(playerVoted);
-                    if (GameState.EveryoneVoted())
-                    {
-                        //everyone voted
-                        var allMultObj = new NetworkMultipleObject(playerVoted);
-                        var voteResult = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, GameState.GetVotes());
-                        allMultObj.AddObject(voteResult);
-                        multObj.AddObject(voteResult);
-                        //add object with all votes in result
-                        Broadcast(allMultObj, ignore: sentBy);
-                    }
-                    else
-                    {
-                        Broadcast(playerVoted, ignore: sentBy);
-                    }
-                    break;
-            }
-            multObj.Send(sentBy);
-            OnReceive?.Invoke(player, request);
+            if(connectedClients.ContainsKey(player))
+                return connectedClients[player];
+            return null;
         }
 
         class SocketListener : BackgroundWorker
         {
             private TcpClient client;
-            private Server server;
+            private ServerMessageHandler server;
             public Player Player { get; }
-            public SocketListener(Server server, TcpClient socket, Player player)
+            public SocketListener(ServerMessageHandler server, TcpClient client, Player player)
             {
-                this.client = socket;
+                this.client = client;
                 this.server = server;
                 Player = player;
                 DoWork += OnReceived;
@@ -278,7 +234,7 @@ namespace SecretHitler.Networking
                 {
                     while (client.Connected)
                     {
-                        var request = DecodeNetworkObjects.Receive(client);
+                        var request = DecodeNetworkObjects.Receive(client, true);
                         server.HandleMessage(request, client, Player);
                     }
                 }
@@ -305,7 +261,7 @@ namespace SecretHitler.Networking
             {
                 if (Thread.CurrentThread.Name == null)
                     Thread.CurrentThread.Name = "Ping Thread";
-                List<string> disconnected = new List<string>();
+                List<Player> disconnected = new List<Player>();
                 try
                 {
                     while (enabled)
@@ -320,7 +276,7 @@ namespace SecretHitler.Networking
                                 foreach (var user in disconnected)
                                     server.connectedClients.Remove(user);
                             foreach (var user in disconnected)
-                                server.Broadcast(new NetworkNewPlayerObject(ServerCommands.PlayerDisconnected, Player.GetPlayerServerSide(user), server.GameState.GetPlayerPos(user)));
+                                server.Broadcast(new NetworkNewPlayerObject(ServerCommands.PlayerDisconnected, user, server.GameState.GetPlayerPos(user.Name)));
                             disconnected.Clear();
                         }
                         Thread.Sleep(250);

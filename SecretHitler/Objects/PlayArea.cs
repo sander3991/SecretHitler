@@ -41,25 +41,26 @@ namespace SecretHitler.Objects
         public Placard Current
         {
             get { return current; }
-            set { current = value; if(current != null) current.Location = Location; }
+            set { current = value; if (current != null) current.Location = Location; }
         }
         private Placard previous;
         public Placard Previous
         {
             get { return previous; }
-            set { previous = value; if(previous != null) previous.Location = new Point(Location.X + DEFAULTSIZE.Width - Placard.DEFAULTSIZE.Width, Location.Y); }
+            set { previous = value; if (previous != null) previous.Location = new Point(Location.X + DEFAULTSIZE.Width - Placard.DEFAULTSIZE.Width, Location.Y); }
         }
 
         protected Player Player { get { return State.SeatedPlayers[ID]; } }
-        protected GameState State { get; }
+        protected ClientGameState State { get; }
 
         private CardBallot votedCard;
         private RotateType rotateType;
         private bool isHovering = false;
         private static Brush fontBrush = new SolidBrush(Color.FromArgb(67, 122, 87));
         private Font playerNameFont;
+        private Card[] pickPolicyCards;
 
-        public PlayArea(GameState state, int ID)
+        public PlayArea(ClientGameState state, int ID)
         {
             State = state;
             this.ID = ID;
@@ -105,10 +106,11 @@ namespace SecretHitler.Objects
 
         public void SetVoteCard(CardBallot card)
         {
-            if (ID >= 3 && ID <= 4)
-                card.Location = new Point(Location.X, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
-            else
-                card.Location = new Point(Location.X + Size.Width - Card.DEFAULTCARDSIZE.Width, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
+            if (card != null)
+                if (ID >= 3 && ID <= 4)
+                    card.Location = new Point(Location.X, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
+                else
+                    card.Location = new Point(Location.X + Size.Width - Card.DEFAULTCARDSIZE.Width, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
             votedCard = card;
         }
 
@@ -126,13 +128,16 @@ namespace SecretHitler.Objects
                 DrawPlayerName(g);
                 DrawPlayerHand(g);
                 votedCard?.Draw(g);
+                if (pickPolicyCards != null)
+                    for (var i = 0; i < pickPolicyCards.Length; i++)
+                        pickPolicyCards[i].Draw(g);
                 g.EndContainer(container);
             }
         }
         private void DefineLocations(PlayerHand hand)
         {
             int yLoc = Location.Y + Size.Height - Card.DEFAULTCARDSIZE.Height;
-            int xSpacing  = (Size.Width - Card.DEFAULTCARDSIZE.Width * 4) / 3 + Card.DEFAULTCARDSIZE.Width;
+            int xSpacing = (Size.Width - Card.DEFAULTCARDSIZE.Width * 4) / 3 + Card.DEFAULTCARDSIZE.Width;
             hand.Membership.Location = new Point(Location.X, yLoc);
             hand.Role.Location = new Point(Location.X + xSpacing, yLoc);
             hand.Yes.Location = new Point(Location.X + xSpacing * 2, yLoc);
@@ -148,6 +153,34 @@ namespace SecretHitler.Objects
                 rotateType = RotateType.Left;
             else //9
                 rotateType = RotateType.Right;
+
+        }
+
+        internal void PickPolicyCard(Card[] cards, Action<Card> callback = null)
+        {
+            var xSpacing = 15 * (cards.Length - 1);
+            var totalXSpace = cards.Length * Card.DEFAULTCARDSIZE.Width + xSpacing;
+            var xOffset = (DEFAULTSIZE.Width / 2 - totalXSpace / 2);
+            for (var i = 0; i < cards.Length; i++)
+            {
+                cards[i].Location = new Point(Location.X + xOffset + i * (Card.DEFAULTCARDSIZE.Width + 15), Location.Y);
+                Action<Card> onClick;
+                if (callback == null)
+                    onClick = PickPolicyCard;
+                else
+                    onClick = (Card card) => { pickPolicyCards = null; callback(card); };
+                cards[i].OnClick += onClick;
+            }
+            pickPolicyCards = cards;
+        }
+
+        private void PickPolicyCard(Card obj)
+        {
+            var policyCards = pickPolicyCards;
+            pickPolicyCards = null;
+            for (var i = 0; i < policyCards.Length; i++)
+                if(obj == policyCards[i])
+                    State.ReturnPolicyCards(i);
         }
 
         internal void ResetState()
@@ -180,7 +213,7 @@ namespace SecretHitler.Objects
         {
 
             if (type == RotateType.None || type == RotateType.Half) return r;
-            var offset = r.Size.Height / 2  - r.Size.Width / 2;
+            var offset = r.Size.Height / 2 - r.Size.Width / 2;
             return new Rectangle(
                 r.Location.X - offset,
                 r.Location.Y + offset,
@@ -199,7 +232,10 @@ namespace SecretHitler.Objects
                     var p = RotatePoint(point.RelativeTo(Location), new Point(Size.Width / 2, Size.Height / 2), Angle(rotateType, reverse: true));
                     clickPoint = new Point(Location.X + p.X, Location.Y + p.Y);
                 }
-                foreach (var card in new Card[] { hand.Membership, hand.Role, hand.Yes, hand.No })
+                var cards = new List<Card> { hand.Membership, hand.Role, hand.Yes, hand.No };
+                if (pickPolicyCards != null)
+                    cards.AddRange(pickPolicyCards);
+                foreach (var card in cards)
                     if (new Rectangle(card.Location, Card.DEFAULTCARDSIZE).IsPointIn(clickPoint))
                     {
                         if (!isLeftClick)

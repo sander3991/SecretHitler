@@ -16,20 +16,22 @@ namespace SecretHitler.Networking
         {
             GameState = state;
         }
-
+        public override string ToString()
+        {
+            return "GameState object";
+        }
         public class GameStateObjectReader : AbstractObjectReader<NetworkGameStateObject>
         {
-            public override byte[] EncodeObject(NetworkGameStateObject obj)
+            public override byte[] EncodeObject(NetworkGameStateObject obj, List<byte> bytes)
             {
                 var seatedPlayers = obj.GameState.SeatedPlayers;
                 string[] players = new string[seatedPlayers.Length];
                 for (var i = 0; i < seatedPlayers.Length; i++)
                     players[i] = seatedPlayers[i] == null ? null : EncodeString(seatedPlayers[i].Name);
-                var bytes = Header(obj);
                 bytes.AddRange(Encoding.ASCII.GetBytes(string.Join(SEPERATOR.ToString(), players)));
                 return bytes.ToArray();
             }
-            public override NetworkGameStateObject DecodeObject(byte[] bytes)
+            public override NetworkGameStateObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var gameStateObj = new NetworkGameStateObject();
                 DecodeHeader(gameStateObj, bytes);

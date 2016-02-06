@@ -8,7 +8,7 @@ namespace SecretHitler.Networking
 {
     public interface INetworkReader
     {
-        NetworkObject GenerateObject(byte[] bytes);
+        NetworkObject GenerateObject(byte[] bytes, bool serverSide);
         byte[] GenerateByteStream(NetworkObject obj);
     }
 }

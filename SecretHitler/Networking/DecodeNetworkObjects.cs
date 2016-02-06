@@ -13,24 +13,45 @@ namespace SecretHitler.Networking
         static DecodeNetworkObjects()
         {
             var messageDecoder = new NetworkMessageObject.MessageObjectReader();
+            var boolDecoder = new NetworkBoolObject.BoolObjectReader();
+            var newPlayerDecoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
+            var cardDecoder = new NetworkCardObject.CardObjectReader();
+            var playerDecoder = new NetworkPlayerObject.PlayerObjectReader();
+            var byteDecoder = new NetworkByteObject.ByteObjectDecoder();
             RegisterDecoder(Message, messageDecoder);
             RegisterDecoder(ReceiveMessage, messageDecoder);
-            var newPlayerDecoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
             RegisterDecoder(PlayerConnected, newPlayerDecoder);
             RegisterDecoder(PlayerDisconnected, newPlayerDecoder);
-            var cardDecoder = new NetworkCardObject.CardObjectReader();
             RegisterDecoder(AnnounceCard, cardDecoder);
             RegisterDecoder(SendGameState, new NetworkGameStateObject.GameStateObjectReader());
             RegisterDecoder(RevealRole, new NetworkRevealRoleObject.RevealRoleObjectReader());
             RegisterDecoder(Multiple, new NetworkMultipleObject.MultipleObjectReader());
-            var playerDecoder = new NetworkPlayerObject.PlayerObjectReader();
             RegisterDecoder(AnnouncePresident, playerDecoder);
             RegisterDecoder(AnnounceChancellor, playerDecoder);
-            var boolDecoder = new NetworkBoolObject.BoolObjectReader();
             RegisterDecoder(CastVote, boolDecoder);
             RegisterDecoder(PlayerVoted, playerDecoder);
             RegisterDecoder(AnnounceVotes, new NetworkVoteResultObject.VoteResultObjectDecoder());
+            RegisterDecoder(PolicyCardsDrawn, byteDecoder);
+            RegisterDecoder(PresidentPickPolicyCard, cardDecoder);
+            RegisterDecoder(ChancellorPickPolicyCard, cardDecoder);
+            RegisterDecoder(PresidentPolicyCardPicked, byteDecoder);
+            RegisterDecoder(ChancellorPolicyCardPicked, byteDecoder);
+            RegisterDecoder(CardPlayed, cardDecoder);
+            RegisterDecoder(RevealMembership, newPlayerDecoder);
+
+            RegisterDecoder(PresidentAction, byteDecoder);
+            RegisterDecoder(PresidentDoingAction, playerDecoder);
+
+            RegisterDecoder(PresidentActionExamine, cardDecoder);
+            //Other Actions are plain objects
+
+            //Examine object is a plain object notifying the server the player is done
+            RegisterDecoder(PresidentActionKillResponse, playerDecoder);
+            RegisterDecoder(PresidentActionChoosePresidentResponse, playerDecoder);
+            RegisterDecoder(PresidentActionInvestigatePresidentResponse, playerDecoder);
         }
+
+
         private static Dictionary<ServerCommands, INetworkReader> decoders = new Dictionary<ServerCommands, INetworkReader>();
         private static INetworkReader DefaultDecoder = new NetworkObject.DefaultObjectReader();
         public static void RegisterDecoder(ServerCommands command, INetworkReader decoder)
@@ -45,18 +66,18 @@ namespace SecretHitler.Networking
                 return decoders[command];
             return DefaultDecoder;
         }
-        public static NetworkObject Receive(TcpClient client)
+        public static NetworkObject Receive(TcpClient client, bool serverSide)
         {
             try
             {
                 byte[] response = new byte[client.ReceiveBufferSize];
                 client.GetStream().Read(response, 0, client.ReceiveBufferSize);
                 ServerCommands command = (ServerCommands)response[0];
-                return command.GetDecoder().GenerateObject(response);
+                return command.GetDecoder().GenerateObject(response, serverSide);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                return null;
             }
         }
     }

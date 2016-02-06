@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SecretHitler.Logic;
+using SecretHitler.Objects;
 
 namespace SecretHitler.Networking
 {
@@ -35,6 +36,8 @@ namespace SecretHitler.Networking
         public event Action<string> OnUsernameChanged;
         public static Client Instance { get; private set; }
         public ReceiveMsgHandler ReceiveHandler { get; private set; }
+        public event Action<NetworkObject> OnSent;
+
         public event Action<Client> OnConnected;
         private Client(Game game, string username = null)
         {
@@ -45,7 +48,7 @@ namespace SecretHitler.Networking
         public void Connect(IPAddress address)
         {
             ipEndPoint = new IPEndPoint(address, SecretHitlerGame.DEFAULTPORT);
-            IPEndPoint clientPoint = new IPEndPoint(IPAddress.Any, SecretHitlerGame.DEFAULTPORT + 1);
+            IPEndPoint clientPoint = new IPEndPoint(IPAddress.Any, 0);
             client = new TcpClient(clientPoint);
             ConfigureTcpClient(client);
             ReceiveHandler = new ReceiveMsgHandler(this);
@@ -113,6 +116,32 @@ namespace SecretHitler.Networking
             new SendMsgHandler(playerObj, this);
         }
 
+        internal void ReturnPolicyCard(byte picked, bool isPresident)
+        {
+            var byteObj = new NetworkByteObject(isPresident ? ServerCommands.PresidentPolicyCardPicked : ServerCommands.ChancellorPolicyCardPicked, picked);
+            new SendMsgHandler(byteObj, this);
+        }
+
+        internal void PickNextPresident(Player obj)
+        {
+            var playerObj = new NetworkPlayerObject(ServerCommands.PresidentActionChoosePresidentResponse, obj);
+            new SendMsgHandler(playerObj, this);
+        }
+
+        internal void ConfirmPolicyRead()
+        {
+            new SendMsgHandler(new NetworkObject(ServerCommands.PresidentActionExamineResponse), this);
+        }
+        internal void InvestigatePlayer(Player player)
+        {
+            new SendMsgHandler(new NetworkPlayerObject(ServerCommands.PresidentActionInvestigatePresidentResponse, player), this);
+        }
+
+        internal void KillPlayer(Player player)
+        {
+            new SendMsgHandler(new NetworkPlayerObject(ServerCommands.PresidentActionKillResponse, player), this);
+        }
+
         public class ReceiveMsgHandler : BackgroundWorker
         {
             private Client client;
@@ -128,7 +157,7 @@ namespace SecretHitler.Networking
                     Thread.CurrentThread.Name = "Receive Message Handler";
                 while (client.client.Connected)
                 {
-                    var receive = DecodeNetworkObjects.Receive(client.client);
+                    var receive = DecodeNetworkObjects.Receive(client.client, false);
                     client.connected = true;
                     try
                     {
@@ -168,8 +197,11 @@ namespace SecretHitler.Networking
                 int timeout = 0;
                 while (!received)
                 {
+                    if(timeout >= 1)
+                        Console.WriteLine($"Send message handler failed trying to send {obj.GetType().Name}");
                     obj.Send(client.client);
-                    Thread.Sleep(100);
+                    client.OnSent?.Invoke(obj);
+                    Thread.Sleep(333);
                     if (++timeout == 10)
                         throw new TimeoutException("The message was not received!");
                 }

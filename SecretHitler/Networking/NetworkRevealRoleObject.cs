@@ -19,17 +19,16 @@ namespace SecretHitler.Networking
             SecretRole = player.Hand.Role;
         }
         private NetworkRevealRoleObject() { }
-
+        public override string ToString() => $"RevealRole object: Player: {Player.Name} Role: {(SecretRole.IsHitler ? "Hitler" : SecretRole.IsFascist ? "Fascist" : "Liberal")}";
         public class RevealRoleObjectReader : AbstractObjectReader<NetworkRevealRoleObject>
         {
-            public override byte[] EncodeObject(NetworkRevealRoleObject obj)
+            public override byte[] EncodeObject(NetworkRevealRoleObject obj, List<byte> bytes)
             {
-                var bytes = Header(obj);
                 bytes.Add(obj.SecretRole.ToByte());
                 bytes.AddRange(Encoding.ASCII.GetBytes(obj.Player.Name));
                 return bytes.ToArray();
             }
-            public override NetworkRevealRoleObject DecodeObject(byte[] bytes)
+            public override NetworkRevealRoleObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var revealObj = new NetworkRevealRoleObject();
                 DecodeHeader(revealObj, bytes);

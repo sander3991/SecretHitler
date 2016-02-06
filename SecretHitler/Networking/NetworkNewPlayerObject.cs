@@ -18,24 +18,24 @@ namespace SecretHitler.Networking
             Player = player;
             SeatPos = seatPos;
         }
+        public override string ToString() => $"NewPlayer object: Player: {Player.Name} Pos: {SeatPos}";
         public class NewPlayerObjectReader : AbstractObjectReader<NetworkNewPlayerObject>
         {
-            public override byte[] EncodeObject(NetworkNewPlayerObject obj)
+            public override byte[] EncodeObject(NetworkNewPlayerObject obj, List<byte> bytes)
             {
-                var bytes = Header(obj);
                 bytes.AddRange(BitConverter.GetBytes(obj.SeatPos));
                 bytes.AddRange(Encoding.ASCII.GetBytes(obj.Player.Name));
                 return bytes.ToArray();
 
             }
-            public override NetworkNewPlayerObject DecodeObject(byte[] bytes)
+            public override NetworkNewPlayerObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var obj = new NetworkNewPlayerObject();
                 DecodeHeader(obj, bytes);
                 obj.SeatPos = BitConverter.ToInt32(bytes, CONTENTINDEX);
                 var lastByte = FindLastByte(bytes, CONTENTINDEX + 4);
                 var playerName = Encoding.ASCII.GetString(bytes, CONTENTINDEX + 4, lastByte - CONTENTINDEX - 4);
-                obj.Player = Player.GetPlayer(playerName);
+                obj.Player = serverSide ? Player.GetPlayerServerSide(playerName) : Player.GetPlayer(playerName);
                 return obj;
             }
         }

@@ -17,6 +17,8 @@ namespace SecretHitler.Views
     {
         public LinkedList<GameObject> Objects { get; private set; } = new LinkedList<GameObject>();
         public PlayArea[] PlayerAreas { get; } = new PlayArea[10];
+        public FascistBoard FascistBoard { get; private set; }
+        public LiberalBoard LiberalBoard { get; private set; }
         private ClientGameState state;
         private Point mousePos;
         private IZoomable zoomable;
@@ -33,14 +35,22 @@ namespace SecretHitler.Views
             GeneratePlacards();
         }
 
-        private void DefineBoards(GameState obj)
+        private void DefineBoards(ClientGameState obj)
         {
+            if (FascistBoard != null)
+                lock (Objects)
+                    Objects.Remove(FascistBoard);
             var xLocation = Width / 2;
             var yLocation = Height / 2 - (Board.DEFAULTSIZE.Height / 2);
+            FascistBoard = new FascistBoard(obj, obj.PlayerCount) { Location = new Point(xLocation, yLocation) };
             lock (Objects)
             {
-                Objects.AddFirst(new LiberalBoard() { Location = new Point(xLocation - Board.DEFAULTSIZE.Width, yLocation) });
-                Objects.AddFirst(new FascistBoard(obj.PlayerCount) { Location = new Point(xLocation, yLocation) });
+                if (LiberalBoard == null)
+                {
+                    LiberalBoard = new LiberalBoard(obj) { Location = new Point(xLocation - Board.DEFAULTSIZE.Width, yLocation) };
+                    Objects.AddFirst(LiberalBoard);
+                }
+                Objects.AddFirst(FascistBoard);
             }
         }
 
@@ -62,7 +72,7 @@ namespace SecretHitler.Views
             }
         }
 
-        private void GeneratePlayAreas(GameState state)
+        private void GeneratePlayAreas(ClientGameState state)
         {
             int horizontalSpacing = Width / 4;
             int playerAreaWidth = PlayArea.DEFAULTSIZE.Width;

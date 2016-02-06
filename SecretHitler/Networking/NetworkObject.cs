@@ -48,6 +48,7 @@ namespace SecretHitler.Networking
             if (client == null) return;
             client.GetStream().Write(Bytes, 0, Bytes.Length);
         }
+        public override string ToString() => $"Default object: {(Message ?? "No message")}";
         public abstract class AbstractObjectReader<T> : INetworkReader where T : NetworkObject
         {
             protected const int CONTENTINDEX = 5;
@@ -74,18 +75,19 @@ namespace SecretHitler.Networking
             public byte[] GenerateByteStream(NetworkObject obj)
             {
                 if (!(obj is T)) throw new Exception("This reader is not ment for this type!");
-                return EncodeObject(obj as T);
+                List<byte> bytes = Header(obj);
+                return EncodeObject(obj as T, bytes);
             }
 
-            public NetworkObject GenerateObject(byte[] bytes) => DecodeObject(bytes);
+            public NetworkObject GenerateObject(byte[] bytes, bool serverSide) => DecodeObject(bytes, serverSide);
             protected string EncodeString(string str) => str.Replace("&", "&amp;").Replace(SEPERATOR.ToString(), "&#124;");
             protected string DecodeString(string str) => str.Replace("&#124;", SEPERATOR.ToString()).Replace("&amp;", "&");
-            public abstract T DecodeObject(byte[] bytes);
-            public abstract byte[] EncodeObject(T obj);
+            public abstract T DecodeObject(byte[] bytes, bool serverSide);
+            public abstract byte[] EncodeObject(T obj, List<byte> header);
         }
-        public sealed class DefaultObjectReader : AbstractObjectReader<NetworkObject>
+        public class DefaultObjectReader : AbstractObjectReader<NetworkObject>
         {
-            public override NetworkObject DecodeObject(byte[] bytes)
+            public override NetworkObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var obj = new NetworkObject();
                 DecodeHeader(obj, bytes);
@@ -95,12 +97,11 @@ namespace SecretHitler.Networking
                 return obj;
             }   
 
-            public override byte[] EncodeObject(NetworkObject obj)
+            public override byte[] EncodeObject(NetworkObject obj, List<byte> header)
             {
-                var list = Header(obj);
                 if (obj.Message != null)
-                    list.AddRange(Encoding.ASCII.GetBytes(obj.Message));
-                return list.ToArray();
+                    header.AddRange(Encoding.ASCII.GetBytes(obj.Message));
+                return header.ToArray();
             }
         }
 

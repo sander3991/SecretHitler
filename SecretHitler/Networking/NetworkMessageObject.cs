@@ -15,15 +15,15 @@ namespace SecretHitler.Networking
             Username = username;
         }
         private NetworkMessageObject() { }
+        public override string ToString() => $"Message object: {Message}";
         public class MessageObjectReader : AbstractObjectReader<NetworkMessageObject>
         {
-            public override byte[] EncodeObject(NetworkMessageObject obj)
+            public override byte[] EncodeObject(NetworkMessageObject obj, List<byte> bytes)
             {
-                List<byte> bytes = Header(obj);
                 bytes.AddRange(Encoding.UTF32.GetBytes($"{EncodeString(obj.Username)}{SEPERATOR}{EncodeString(obj.Message)}"));
                 return bytes.ToArray();
             }
-            public override NetworkMessageObject DecodeObject(byte[] bytes)
+            public override NetworkMessageObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var obj = new NetworkMessageObject();
                 DecodeHeader(obj, bytes);

@@ -17,17 +17,28 @@ namespace SecretHitler.Networking
         }
         protected NetworkCardObject() { }
 
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"Card object with {Cards.Length} cards: ");
+            for (var i = 0; i < Cards.Length; i++)
+            {
+                sb.Append(Cards[i].GetType().Name);
+                if (i + 1 < Cards.Length)
+                    sb.Append(" & ");
+            }
+            return sb.ToString();
+        }
         public class CardObjectReader : AbstractObjectReader<NetworkCardObject>
         {
-            public override byte[] EncodeObject(NetworkCardObject obj)
+            public override byte[] EncodeObject(NetworkCardObject obj, List<byte> bytes)
             {
-                var bytes = Header(obj);
                 for (var i = 0; i < obj.Cards.Length; i++)
                     bytes.Add(obj.Cards[i].ToByte());
                 return bytes.ToArray();
 
             }
-            public override NetworkCardObject DecodeObject(byte[] bytes)
+            public override NetworkCardObject DecodeObject(byte[] bytes, bool serverSide)
             {
                 var cardObj = new NetworkCardObject();
                 DecodeHeader(cardObj, bytes);

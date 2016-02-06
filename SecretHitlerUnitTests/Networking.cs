@@ -23,7 +23,7 @@ namespace SecretHitlerUnitTests
             {
                 var obj = new NetworkObject(tuple.Item1, tuple.Item2);
                 var bytes = decoder.GenerateByteStream(obj);
-                var generateObj = decoder.GenerateObject(bytes);
+                var generateObj = decoder.GenerateObject(bytes, false);
                 CompareDefaultObject(obj, generateObj);
             }
         }
@@ -39,7 +39,7 @@ namespace SecretHitlerUnitTests
             var networkObj = new NetworkCardObject(ServerCommands.AnnounceCard, new CardBallotNo(), new CardBallotYes());
             var decoder = new NetworkCardObject.CardObjectReader();
             var bytes = decoder.GenerateByteStream(networkObj);
-            var generatedObj = decoder.GenerateObject(bytes);
+            var generatedObj = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(generatedObj, typeof(NetworkCardObject));
             var generatedCardObj = generatedObj as NetworkCardObject;
             Assert.IsTrue(generatedCardObj.Cards.Length == networkObj.Cards.Length);
@@ -59,7 +59,7 @@ namespace SecretHitlerUnitTests
             var obj = new NetworkGameStateObject(ServerCommands.SendGameState, gamestate);
             var decoder = new NetworkGameStateObject.GameStateObjectReader();
             var bytes = decoder.GenerateByteStream(obj);
-            var generatedObj = decoder.GenerateObject(bytes);
+            var generatedObj = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(generatedObj, typeof(NetworkGameStateObject));
             var generatedGamestate = generatedObj as NetworkGameStateObject;
             Assert.IsTrue(generatedGamestate.GameState.PlayerCount == gamestate.PlayerCount);
@@ -90,7 +90,7 @@ namespace SecretHitlerUnitTests
             {
                 var obj = new NetworkMessageObject(messages[i, 1], messages[i, 0]);
                 var bytes = decoder.GenerateByteStream(obj);
-                var generatedObj = decoder.GenerateObject(bytes);
+                var generatedObj = decoder.GenerateObject(bytes, false);
                 Assert.IsInstanceOfType(generatedObj, typeof(NetworkMessageObject));
                 var msgObj = generatedObj as NetworkMessageObject;
                 Assert.AreEqual(msgObj.Username, obj.Username);
@@ -114,7 +114,7 @@ namespace SecretHitlerUnitTests
             );
             var decoder = ServerCommands.Multiple.GetDecoder();
             var bytes = decoder.GenerateByteStream(msg);
-            var decoded = decoder.GenerateObject(bytes);
+            var decoded = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(decoded, typeof(NetworkMultipleObject));
             var receivedMsg = decoded as NetworkMultipleObject;
             Assert.IsTrue(receivedMsg.Objects.Length == msg.Objects.Length);
@@ -128,7 +128,7 @@ namespace SecretHitlerUnitTests
             var obj = new NetworkNewPlayerObject(ServerCommands.PlayerConnected, Player.GetPlayer("Sander"), 1);
             var decoder = new NetworkNewPlayerObject.NewPlayerObjectReader();
             var bytes = decoder.GenerateByteStream(obj);
-            var generatedObj = decoder.GenerateObject(bytes);
+            var generatedObj = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(generatedObj, typeof(NetworkNewPlayerObject));
             var newPlayerObj = generatedObj as NetworkNewPlayerObject;
             Assert.AreEqual(newPlayerObj.SeatPos, obj.SeatPos);
@@ -142,7 +142,7 @@ namespace SecretHitlerUnitTests
             var decoder = new NetworkPlayerObject.PlayerObjectReader();
             var obj = new NetworkPlayerObject(ServerCommands.AnnouncePresident, player);
             var bytes = decoder.GenerateByteStream(obj);
-            var playerObj = decoder.GenerateObject(bytes);
+            var playerObj = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(playerObj, typeof(NetworkPlayerObject));
             Assert.AreSame(player, (playerObj as NetworkPlayerObject).Player);
             CompareDefaultObject(obj, playerObj);
@@ -155,7 +155,7 @@ namespace SecretHitlerUnitTests
             var obj = new NetworkRevealRoleObject(player);
             var decoder = new NetworkRevealRoleObject.RevealRoleObjectReader();
             var bytes = decoder.GenerateByteStream(obj);
-            var generatedObj = decoder.GenerateObject(bytes);
+            var generatedObj = decoder.GenerateObject(bytes, false);
             Assert.IsInstanceOfType(generatedObj, typeof(NetworkRevealRoleObject));
             var newPlayerObj = generatedObj as NetworkRevealRoleObject;
             Assert.AreEqual(newPlayerObj.Player.Name, obj.Player.Name);
@@ -170,13 +170,13 @@ namespace SecretHitlerUnitTests
             var boolObj = new NetworkBoolObject(ServerCommands.CastVote, true) { Message = "Test"};
             var decoder = new NetworkBoolObject.BoolObjectReader();
             var bytes = decoder.GenerateByteStream(boolObj);
-            var generated = decoder.GenerateObject(bytes) as NetworkBoolObject;
+            var generated = decoder.GenerateObject(bytes, false) as NetworkBoolObject;
             Assert.IsTrue(generated.Value);
             Assert.AreEqual("Test", generated.Message);
             boolObj = new NetworkBoolObject(ServerCommands.CastVote, false);
             decoder = new NetworkBoolObject.BoolObjectReader();
             bytes = decoder.GenerateByteStream(boolObj);
-            generated = decoder.GenerateObject(bytes) as NetworkBoolObject;
+            generated = decoder.GenerateObject(bytes, false) as NetworkBoolObject;
             Assert.IsFalse(generated.Value);
             CompareDefaultObject(boolObj, generated);
         }
@@ -188,16 +188,46 @@ namespace SecretHitlerUnitTests
             {
                 true, true, true, true, false, false, true
             };
-            var obj = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, votes);
+            var obj = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, votes, true);
             var decoder = new NetworkVoteResultObject.VoteResultObjectDecoder();
             var bytes = decoder.GenerateByteStream(obj);
-            var generated = decoder.GenerateObject(bytes) as NetworkVoteResultObject;
+            var generated = decoder.GenerateObject(bytes, false) as NetworkVoteResultObject;
             Assert.AreEqual(votes.Length, generated.Votes.Length);
             for(var i = 0; i < votes.Length; i++)
             {
                 Assert.AreEqual(votes[i], generated.Votes[i]);
             }
+            Assert.AreEqual(obj.Passed, generated.Passed);
             CompareDefaultObject(obj, generated);
+        }
+
+        [TestMethod]
+        public void ByteObjectDecoder()
+        {
+            var decoder = new NetworkByteObject.ByteObjectDecoder();
+            for(byte i = 0; i < 10; i++)
+            {
+                var obj = new NetworkByteObject(ServerCommands.PolicyCardsDrawn, i);
+                var bytes = decoder.GenerateByteStream(obj);
+                var generated = decoder.GenerateObject(bytes, false) as NetworkByteObject;
+                Assert.AreEqual(obj.Value, generated.Value);
+                CompareDefaultObject(obj, generated);
+            }
+        }
+
+        [TestMethod]
+        public void NetworkFascistActionObject()
+        {
+            /*var decoder = new NetworkFascistActionObject.FascistActionObjectReader();
+            for(byte i = 0; i < 10; i++)
+            {
+                var obj = new NetworkFascistActionObject(ServerCommands.PresidentAction, Player.GetPlayer("Player_" + i), i);
+                var bytes = decoder.GenerateByteStream(obj);
+                var generated = decoder.GenerateObject(bytes, false) as NetworkFascistActionObject;
+                Assert.AreEqual(obj.Action, generated.Action);
+                Assert.AreEqual(obj.Player, generated.Player);
+                CompareDefaultObject(obj, generated);
+            }*/
         }
     }
 }
