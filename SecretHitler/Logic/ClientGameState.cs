@@ -81,18 +81,15 @@ namespace SecretHitler.Logic
                     SetChancellor(null);
                     PreviousGovernmentElected = false;
                     if (President == Me)
-                    {
-                        Window.SetPlayerMessage("Please pick your chancellor.");
-                        PickPlayerAction(Client.ChooseChancellor, CheckIfPlayerIsntPreviousGovernment, (Player player) => Window.SetPlayerMessage($"You can't pick {player.Name} as your chancellor. Pick someone else!"));
-                    }
+                        PickPlayerAction(Client.ChooseChancellor, MayElectPlayer, (Player player) => Window.SetPlayerMessage($"You can't pick {player.Name} as your chancellor. Pick someone else!"));
                     else
                         Window.SetPlayerMessage($"Wait for {President.Name} to pick his/her chancellor.");
                     break;
                 case AnnounceChancellor:
                     SetChancellor((obj as NetworkPlayerObject).Player);
                     ClearVotes();
-                    Window.SetPlayerMessage($"Please vote for {President.Name} as President and {Chancellor.Name} as Chancellor");
-                    PickTarotCard(Client.CastVote);
+                    if(!Me.Dead)
+                        PickTarotCard(Client.CastVote);
                     break;
                 case PlayerVoted:
                     var playerVotedObj = obj as NetworkPlayerObject;
@@ -100,9 +97,10 @@ namespace SecretHitler.Logic
                     break;
                 case AnnounceVotes:
                     var announceVotes = obj as NetworkVoteResultObject;
-                    PreviousGovernmentElected = announceVotes.Passed;
+                    PreviousGovernmentElected = announceVotes.Passed == Vote.Ja;
                     for (var i = 0; i < announceVotes.Votes.Length; i++)
-                        SeatedPlayers[i].PlayArea.SetVoteCard(announceVotes.Votes[i] ? (CardBallot)new CardBallotYes() : new CardBallotNo());
+                        if(announceVotes.Votes[i] != Vote.Dead)
+                            SeatedPlayers[i].PlayArea.SetVoteCard(announceVotes.Votes[i] == Vote.Ja ? (CardBallot)new CardBallotYes() : new CardBallotNo());
                     break;
                 case PolicyCardsDrawn:
                     var policyCardsDrawn = obj as NetworkByteObject;
@@ -147,6 +145,9 @@ namespace SecretHitler.Logic
                         membership = new CardMembershipFascist();
                     membership.Location = revealMembership.Player.Hand.Membership.Location;
                     revealMembership.Player.Hand.Membership = membership;
+                    break;
+                case ServerCommands.KillPlayer:
+                    KillPlayer((obj as NetworkPlayerObject).Player);
                     break;
 
             }
@@ -194,7 +195,7 @@ namespace SecretHitler.Logic
             };
             var playersBound = 0;
             for (var i = 0; i < PlayerCount; i++)
-                if (MayElectPlayer(SeatedPlayers[i]) || (!isElection && SeatedPlayers[i] != Me))
+                if (MayElectPlayer(SeatedPlayers[i]) || (!isElection && SeatedPlayers[i] != Me && !SeatedPlayers[i].Dead))
                 {
                     PlayAreas[i].OnClick += internalAction;
                     playersBound++;

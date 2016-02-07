@@ -81,23 +81,25 @@ namespace SecretHitler.Networking
                     PlayPolicy(playCard, response);
                     break;
                 case ServerCommands.PresidentActionExamineResponse:
-                    if (player != gameState.President) break;
+                    if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
                     GetNextPresident(response);
                     break;
                 case ServerCommands.PresidentActionKillResponse:
-                    if (player != gameState.President) break;
-                    // Implement killing a player
+                    if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
+                    var killPlayer = request as NetworkPlayerObject;
+                    gameState.KillPlayer(killPlayer.Player);
+                    response.AddObject(new NetworkPlayerObject(ServerCommands.KillPlayer, killPlayer.Player));
                     GetNextPresident(response);
                     break;
 
                 case ServerCommands.PresidentActionChoosePresidentResponse:
-                    if (player != gameState.President) break;
+                    if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
                     var presObj = request as NetworkPlayerObject;
                     if (presObj.Player == gameState.President) break;
                     SetPresident(response, presObj.Player);
                     break;
                 case ServerCommands.PresidentActionInvestigatePresidentResponse:
-                    if (player != gameState.President) break;
+                    if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
                     var investigate = request as NetworkPlayerObject;
                     if (investigate.Player == player) break;
                     response.AddObject(new NetworkNewPlayerObject(ServerCommands.RevealMembership, investigate.Player, investigate.Player.Hand.Membership.IsFascist ? 1 : 0), player);
@@ -123,7 +125,7 @@ namespace SecretHitler.Networking
         private void AnnounceVotes(ServerResponse response)
         {
             bool passed = gameState.VotePassed();
-            response.AddObject(new NetworkVoteResultObject(ServerCommands.AnnounceVotes, gameState.GetVotes(), passed));
+            response.AddObject(new NetworkVoteResultObject(ServerCommands.AnnounceVotes, gameState.GetVotes(), passed ? Vote.Ja : Vote.Nein));
             gameState.PreviousGovernmentElected = passed;
             if (passed)
             {
@@ -149,6 +151,7 @@ namespace SecretHitler.Networking
                 var fascistAction = gameState.FascistActions[fascistId];
                 response.AddObject(new NetworkByteObject(ServerCommands.PresidentAction, (byte)fascistId));
                 response.AddObject(fascistAction.GetPresidentObject(gameState), gameState.President);
+                gameState.AwaitingPresidentAction = fascistAction.ServerResponse;
             }
 
         }
@@ -158,16 +161,12 @@ namespace SecretHitler.Networking
     {
         private Dictionary<Player, NetworkMultipleObject> objects;
         private NetworkMultipleObject all;
-        public void AddObject(NetworkObject obj, Player player = null)
+        private NetworkMultipleObject noDead;
+        private bool responsePrepared;
+        public void AddObject(NetworkObject obj, Player player = null, bool deadPlayers = true)
         {
-            if (player == null)
-            {
-                if (all == null)
-                    all = obj is NetworkMultipleObject ? all : new NetworkMultipleObject(obj);
-                else
-                    all.AddObject(obj);
-            }
-            else
+            if (responsePrepared) throw new InvalidOperationException("Can't add objects when the object has been sent");
+            if(player != null)
             {
                 if (objects == null)
                     objects = new Dictionary<Player, NetworkMultipleObject>();
@@ -176,16 +175,44 @@ namespace SecretHitler.Networking
                 else
                     objects[player].AddObject(obj);
             }
+            else if (deadPlayers)
+            {
+                if (all == null)
+                    all = obj is NetworkMultipleObject ? (obj  as NetworkMultipleObject) : new NetworkMultipleObject(obj);
+                else
+                    all.AddObject(obj);
+            }
+            else
+            {
+                if (noDead == null)
+                    noDead = obj is NetworkMultipleObject ? (obj as NetworkMultipleObject) : new NetworkMultipleObject(obj);
+                else
+                    all.AddObject(obj);
+            }
+        }
+        private void PrepareResponses()
+        {
+            if (noDead != null) //contains everything non dead people need
+                noDead.AddObject(all);
+            else
+                noDead = all;
+            if(objects != null)
+                foreach(var player in objects.Keys)
+                {
+                    if (noDead != null && !player.Dead)
+                        objects[player].AddObject(noDead);
+                    else if (all != null)
+                        objects[player].AddObject(all);
+                }
+            responsePrepared = true;
         }
         public NetworkMultipleObject GetResponse(Player player)
         {
-            if (objects.ContainsKey(player))
-            {
-                if (all != null)
-                    objects[player].AddObject(all);
+            if (!responsePrepared)
+                PrepareResponses();
+            if (objects != null && objects.ContainsKey(player))
                 return objects[player];
-            }
-            return all;
+            return player.Dead ? all : noDead;
         }
     }
 }

@@ -28,10 +28,10 @@
         PresidentDiscarded = 0x17,
         ChancellorDiscarded = 0x18,
         CardPlayed = 0x19,
-
         PresidentAction = 0x1A,
         PresidentDoingAction = 0x1B,
         RevealMembership = 0x1C,
+        KillPlayer = 0x1D,
 
         PresidentActionExamine = 0x31,
         PresidentActionKill = 0x32,

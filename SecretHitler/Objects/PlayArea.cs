@@ -57,6 +57,7 @@ namespace SecretHitler.Objects
         private RotateType rotateType;
         private bool isHovering = false;
         private static Brush fontBrush = new SolidBrush(Color.FromArgb(67, 122, 87));
+        private static Bitmap DEATH = Properties.Resources.death.CutToSize(new Size(100, 100));
         private Font playerNameFont;
         private Card[] pickPolicyCards;
 
@@ -126,6 +127,8 @@ namespace SecretHitler.Objects
                 if (isHovering && OnClick != null)
                     g.FillRectangle(BackgroundBrush, DrawLocation);
                 DrawPlayerName(g);
+                if (Player.Dead)
+                    g.DrawImageUnscaled(DEATH, new Point(Location.X + (Size.Width / 2) - 50, Location.Y));
                 DrawPlayerHand(g);
                 votedCard?.Draw(g);
                 if (pickPolicyCards != null)

@@ -43,8 +43,6 @@ namespace SecretHitler.Logic
             PlayedFascistCards = new CardPolicyFascist[6];
         }
 
-        protected bool CheckIfPlayerIsntPreviousGovernment(Player player) => player != PreviousChancellor && player != PreviousPresident;
-
         internal virtual void SetChancellor(Player player)
         {
             if (PreviousGovernmentElected)
@@ -104,7 +102,13 @@ namespace SecretHitler.Logic
             if (player == PreviousChancellor) return false;
             if (player == PreviousPresident && PlayerCount > 5) return false;
             if (player == President) return false;
+            if (player.Dead) return false;
             return true;
+        }
+
+        public virtual void KillPlayer(Player player)
+        {
+            player.Dead = true;
         }
     }
 

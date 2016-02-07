@@ -184,11 +184,11 @@ namespace SecretHitlerUnitTests
         [TestMethod]
         public void NetworkVoteResultObject()
         {
-            var votes = new bool[]
+            var votes = new Vote[]
             {
-                true, true, true, true, false, false, true
+                Vote.Ja, Vote.Dead, Vote.Ja, Vote.Ja, Vote.Nein, Vote.Nein, Vote.Ja
             };
-            var obj = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, votes, true);
+            var obj = new NetworkVoteResultObject(ServerCommands.AnnounceVotes, votes, Vote.Ja);
             var decoder = new NetworkVoteResultObject.VoteResultObjectDecoder();
             var bytes = decoder.GenerateByteStream(obj);
             var generated = decoder.GenerateObject(bytes, false) as NetworkVoteResultObject;

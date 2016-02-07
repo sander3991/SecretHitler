@@ -38,6 +38,7 @@ namespace SecretHitler.Networking
             RegisterDecoder(ChancellorPolicyCardPicked, byteDecoder);
             RegisterDecoder(CardPlayed, cardDecoder);
             RegisterDecoder(RevealMembership, newPlayerDecoder);
+            RegisterDecoder(KillPlayer, playerDecoder);
 
             RegisterDecoder(PresidentAction, byteDecoder);
             RegisterDecoder(PresidentDoingAction, playerDecoder);

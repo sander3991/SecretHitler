@@ -11,6 +11,8 @@ namespace SecretHitler.Objects
     public abstract class FascistAction
     {
         public string Description { get; }
+        public abstract ServerCommands ServerResponse { get; }
+
         protected FascistAction(string description)
         {
             Description = description;
@@ -30,7 +32,7 @@ namespace SecretHitler.Objects
         public static FascistAction[] GetActionsForPlayers(int players)
         {
             if (players <= 6)
-                return new FascistAction[] { examineDeck, null, examineDeck, killPlayer, killPlayer, null };
+                return new FascistAction[] { null, null, examineDeck, killPlayer, killPlayer, null };
             if (players <= 8)
                 return new FascistAction[] { null, investigateIdentity, choosePresident, killPlayer, killPlayer, null };
             return new FascistAction[] { investigateIdentity, investigateIdentity, choosePresident, killPlayer, killPlayer, null };
@@ -38,6 +40,7 @@ namespace SecretHitler.Objects
     }
     public class FascistActionExamine : FascistAction
     {
+        public override ServerCommands ServerResponse { get { return ServerCommands.PresidentActionExamineResponse; } }
         public FascistActionExamine() : base("{0} may examine the top three cards") { }
         public override NetworkObject GetPresidentObject(ServerGameState gameState)
         {
@@ -48,6 +51,7 @@ namespace SecretHitler.Objects
     }
     public class FascistActionKill : FascistAction
     {
+        public override ServerCommands ServerResponse { get { return ServerCommands.PresidentActionKillResponse; } }
         public FascistActionKill() : base("{0} may kill a player") { }
         public override NetworkObject GetPresidentObject(ServerGameState gameState)
         {
@@ -56,6 +60,7 @@ namespace SecretHitler.Objects
     }
     public class FascistActionInvestigate : FascistAction
     {
+        public override ServerCommands ServerResponse { get { return ServerCommands.PresidentActionInvestigatePresidentResponse; } }
         public FascistActionInvestigate() : base("{0} may investigate a player's identity") { }
         public override NetworkObject GetPresidentObject(ServerGameState gameState)
         {
@@ -64,6 +69,7 @@ namespace SecretHitler.Objects
     }
     public class FascistActionChoosePresident : FascistAction
     {
+        public override ServerCommands ServerResponse { get { return ServerCommands.PresidentActionChoosePresidentResponse; } }
         public FascistActionChoosePresident() : base("{0} may choose the next presidential canditate") { }
         public override NetworkObject GetPresidentObject(ServerGameState gameState)
         {
