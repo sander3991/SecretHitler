@@ -73,7 +73,7 @@ namespace SecretHitler.Views
                 startGameError.Visible = true;
                 return;
             }
-            server.LaunchGame();
+            server.GameState.LaunchGame();
             startBtn.Hide();
         }
 
@@ -110,6 +110,17 @@ namespace SecretHitler.Views
         private void button2_Click(object sender, EventArgs e)
         {
             new Netviewer(server, client).Show();
+        }
+
+        internal void EndGame()
+        {
+            if (server != null)
+            {
+                if (startBtn.InvokeRequired)
+                    startBtn.Invoke(new Action(EndGame));
+                else
+                    startBtn.Show();
+            }
         }
     }
 }

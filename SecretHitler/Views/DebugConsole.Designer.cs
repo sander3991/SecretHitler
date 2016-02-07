@@ -49,6 +49,8 @@
             this.confirmKillPlayer = new System.Windows.Forms.Button();
             this.choosePresidentBtn = new System.Windows.Forms.Button();
             this.investigatePlayerBtn = new System.Windows.Forms.Button();
+            this.roleLabel = new System.Windows.Forms.Label();
+            this.membershipLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // playerButton1
@@ -65,7 +67,7 @@
             // playerButton2
             // 
             this.playerButton2.Enabled = false;
-            this.playerButton2.Location = new System.Drawing.Point(93, 12);
+            this.playerButton2.Location = new System.Drawing.Point(94, 12);
             this.playerButton2.Name = "playerButton2";
             this.playerButton2.Size = new System.Drawing.Size(75, 23);
             this.playerButton2.TabIndex = 1;
@@ -274,11 +276,31 @@
             this.investigatePlayerBtn.UseVisualStyleBackColor = true;
             this.investigatePlayerBtn.Click += new System.EventHandler(this.investigatePlayerBtn_Click);
             // 
+            // roleLabel
+            // 
+            this.roleLabel.AutoSize = true;
+            this.roleLabel.Location = new System.Drawing.Point(437, 17);
+            this.roleLabel.Name = "roleLabel";
+            this.roleLabel.Size = new System.Drawing.Size(58, 13);
+            this.roleLabel.TabIndex = 21;
+            this.roleLabel.Text = "Role Label";
+            // 
+            // membershipLabel
+            // 
+            this.membershipLabel.AutoSize = true;
+            this.membershipLabel.Location = new System.Drawing.Point(437, 46);
+            this.membershipLabel.Name = "membershipLabel";
+            this.membershipLabel.Size = new System.Drawing.Size(93, 13);
+            this.membershipLabel.TabIndex = 22;
+            this.membershipLabel.Text = "Membership Label";
+            // 
             // DebugConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(629, 446);
+            this.Controls.Add(this.membershipLabel);
+            this.Controls.Add(this.roleLabel);
             this.Controls.Add(this.investigatePlayerBtn);
             this.Controls.Add(this.choosePresidentBtn);
             this.Controls.Add(this.confirmKillPlayer);
@@ -303,6 +325,7 @@
             this.Name = "DebugConsole";
             this.Text = "DebugConsole";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -329,5 +352,7 @@
         private System.Windows.Forms.Button confirmKillPlayer;
         private System.Windows.Forms.Button choosePresidentBtn;
         private System.Windows.Forms.Button investigatePlayerBtn;
+        private System.Windows.Forms.Label roleLabel;
+        private System.Windows.Forms.Label membershipLabel;
     }
 }

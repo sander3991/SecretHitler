@@ -43,6 +43,19 @@ namespace SecretHitler.Logic
             obj.RequestGameState();
         }
 
+        internal override void StartGame()
+        {
+            base.StartGame();
+            foreach (Player player in SeatedPlayers)
+                if (player != null)
+                {
+                    player?.Hand.SetUnkown();
+                    player.PlayArea.SetVoteCard(null);
+                    player.PlayArea.SetNotHitler(null);
+                }
+            SetUnknownCards();
+        }
+
         private void OnMessageReceived(NetworkObject obj)
         {
             switch (obj.Command)
@@ -63,11 +76,8 @@ namespace SecretHitler.Logic
                     SeatPlayer(newPlayerObj.Player, newPlayerObj.SeatPos);
                     break;
                 case AnnounceCard:
-                    SetPresident(null); SetChancellor(null); SetPreviousPresident(null); SetPreviousChancellor(null);
-                    foreach (Player player in SeatedPlayers)
-                        if (player != null) player?.Hand.SetUnkown();
+                    StartGame();
                     Me.Hand = new PlayerHand((obj as NetworkCardObject).Cards);
-                    SetUnknownCards();
                     OnStart?.Invoke(this);
                     break;
                 case RevealRole:
@@ -140,16 +150,29 @@ namespace SecretHitler.Logic
                     var revealMembership = obj as NetworkNewPlayerObject;
                     CardMembership membership;
                     if (revealMembership.SeatPos == 1)
-                        membership = new CardMembershipLiberal();
-                    else
                         membership = new CardMembershipFascist();
+                    else
+                        membership = new CardMembershipLiberal();
                     membership.Location = revealMembership.Player.Hand.Membership.Location;
                     revealMembership.Player.Hand.Membership = membership;
                     break;
                 case ServerCommands.KillPlayer:
                     KillPlayer((obj as NetworkPlayerObject).Player);
                     break;
-
+                case FascistWin:
+                case LiberalWin:
+                    Window.EndGame();
+                    PlayingGame = false;
+                    break;
+                case ServerCommands.IncrementElectionTracker:
+                    IncrementElectionTracker();
+                    break;
+                case ServerCommands.ResetElectionTracker:
+                    ResetElectionTracker();
+                    break;
+                case NotHitler:
+                    (obj as NetworkPlayerObject).Player.PlayArea.SetNotHitler(new CardNotHitler());
+                    break;
             }
         }
 

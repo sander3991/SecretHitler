@@ -64,6 +64,8 @@ namespace SecretHitler.Views
             btn.Enabled = false;
             selectedButton = btn;
             selectedPlayer = btn.Tag as Player;
+            membershipLabel.Text = selectedPlayer.Hand.Membership.IsFascist ? "Fascist" : "Liberal";
+            roleLabel.Text = selectedPlayer.Hand.Role.IsHitler ? "Hitler" : selectedPlayer.Hand.Role.IsFascist ? "Fascist" : "Liberal";
         }
 
         private void SendToServer(NetworkObject obj)

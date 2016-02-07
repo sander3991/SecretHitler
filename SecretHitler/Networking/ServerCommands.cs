@@ -9,7 +9,6 @@
         ReceiveMessage = 0x04,
         PlayerConnected = 0x05,
         PlayerDisconnected = 0x06,
-        Full = 0x07,
         SendGameState = 0x08,
         GetGameState = 0x09,
         AnnounceCard = 0x0A,
@@ -32,6 +31,10 @@
         PresidentDoingAction = 0x1B,
         RevealMembership = 0x1C,
         KillPlayer = 0x1D,
+        NotHitler = 0x1E,
+        IncrementElectionTracker = 0x1F,
+        ResetElectionTracker = 0x20,
+        ThePeopleSpoken = 0x21,
 
         PresidentActionExamine = 0x31,
         PresidentActionKill = 0x32,
@@ -43,5 +46,11 @@
         PresidentActionKillResponse = 0x42,
         PresidentActionChoosePresidentResponse = 0x43,
         PresidentActionInvestigatePresidentResponse = 0x44,
+
+        FascistWin = 0x51,
+        LiberalWin = 0x52,
+
+        CurrentlyPlaying = 0x60,
+        Full = 0x61,
     }
 }

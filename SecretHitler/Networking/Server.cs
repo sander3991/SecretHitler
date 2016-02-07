@@ -53,61 +53,6 @@ namespace SecretHitler.Networking
             OnSent?.Invoke(player, obj);
         }
 
-        public void LaunchGame()
-        {
-            var playerCount = GameState.PlayerCount;
-            var fascistCount = playerCount % 2 == 0 ? playerCount / 2 - 1 : playerCount / 2;
-            var liberalCount = playerCount - fascistCount;
-
-            //Generate Decks
-
-            PlayerHand[] decks = new PlayerHand[playerCount];
-            var j = 0;
-            for (var i = 0; i < fascistCount; i++, j++)
-                decks[j] = new PlayerHand(new CardSecretRoleFascist(i), new CardMembershipFascist());
-            for (var i = 0; i < liberalCount; i++, j++)
-                decks[j] = new PlayerHand(new CardSecretRoleLiberal(i), new CardMembershipLiberal());
-
-            Player hitler = null;
-            var fascists = new List<Player>();
-            //Shuffle and hand out decks
-            decks.Shuffle();
-            var sendMsgs = new NetworkMultipleObject[10];
-            for (var i = 0; i < playerCount; i++)
-            {
-                var player = GameState.SeatedPlayers[i];
-                player.Hand = decks[i];
-                var sendToPlayer = new NetworkCardObject(ServerCommands.AnnounceCard, decks[i].Membership, decks[i].Role, decks[i].Yes, decks[i].No);
-                if (decks[i].Role.IsFascist)
-                    fascists.Add(player);
-                if (decks[i].Role.IsHitler)
-                    hitler = player;
-                sendMsgs[i] = new NetworkMultipleObject(sendToPlayer);
-                //Announce decks to player
-            }
-            var rand = new Random(Environment.TickCount * 5);
-            var president = GameState.SeatedPlayers[rand.Next(playerCount)];
-            GameState.SetPresident(president);
-            var presidentMsg = new NetworkPlayerObject(ServerCommands.AnnouncePresident, president);
-
-            //Announce Fascists to other party members
-            for (var i = 0; i < playerCount; i++)
-            {
-                var multipleObjects = sendMsgs[i];
-                var player = GameState.SeatedPlayers[i];
-                if (player.Hand.Membership.IsFascist && (playerCount <= 6 || !player.Hand.Role.IsHitler))
-                {
-                    foreach (Player announcePlayer in fascists)
-                        if (player != announcePlayer && connectedClients.ContainsKey(player))
-                            multipleObjects.AddObject(new NetworkRevealRoleObject(announcePlayer));
-                }
-                multipleObjects.AddObject(presidentMsg);
-                SendMessage(player, multipleObjects);
-            }
-
-            GameState.FascistActions = FascistAction.GetActionsForPlayers(playerCount);
-        }
-
         public void Start()
         {
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, SecretHitlerGame.DEFAULTPORT);
@@ -147,6 +92,14 @@ namespace SecretHitler.Networking
                         var fullmsg = new NetworkObject(ServerCommands.Full);
                         fullmsg.Send(tcpClient);
                         OnSent?.Invoke(newUser, fullmsg);
+                        tcpClient.Close();
+                        continue;
+                    }
+                    else if (GameState.PlayingGame)
+                    {
+                        var msg = new NetworkObject(ServerCommands.CurrentlyPlaying);
+                        msg.Send(tcpClient);
+                        OnSent?.Invoke(newUser, msg);
                         tcpClient.Close();
                         continue;
                     }

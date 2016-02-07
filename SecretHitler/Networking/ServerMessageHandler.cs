@@ -87,8 +87,15 @@ namespace SecretHitler.Networking
                 case ServerCommands.PresidentActionKillResponse:
                     if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
                     var killPlayer = request as NetworkPlayerObject;
-                    gameState.KillPlayer(killPlayer.Player);
                     response.AddObject(new NetworkPlayerObject(ServerCommands.KillPlayer, killPlayer.Player));
+                    gameState.KillPlayer(killPlayer.Player);
+                    if (killPlayer.Player.Hand.Role.IsHitler)
+                    {
+                        AnnounceWin(response, false, "Hitler was killed");
+                        break;
+                    }
+                    else
+                        response.AddObject(new NetworkPlayerObject(ServerCommands.NotHitler, killPlayer.Player));
                     GetNextPresident(response);
                     break;
 
@@ -96,7 +103,9 @@ namespace SecretHitler.Networking
                     if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
                     var presObj = request as NetworkPlayerObject;
                     if (presObj.Player == gameState.President) break;
+                    var presidentAfterChoice = gameState.GetNextPresident();
                     SetPresident(response, presObj.Player);
+                    gameState.SetNextPresident(presidentAfterChoice);
                     break;
                 case ServerCommands.PresidentActionInvestigatePresidentResponse:
                     if (player != gameState.President || gameState.AwaitingPresidentAction != request.Command) break;
@@ -110,16 +119,24 @@ namespace SecretHitler.Networking
             OnReceive?.Invoke(player, request);
         }
 
-        internal void SetPresident(ServerResponse response, Player president)
+        private void AnnounceWin(ServerResponse response, bool fascistWin, string reason)
         {
-            response.AddObject(new NetworkPlayerObject(ServerCommands.AnnouncePresident, president));
+            var playerCount = gameState.PlayerCount;
+            for (var i = 0; i < playerCount; i++)
+                response.AddObject(new NetworkRevealRoleObject(gameState.SeatedPlayers[i]));
+            response.AddObject(new NetworkObject(fascistWin ? ServerCommands.FascistWin : ServerCommands.LiberalWin, reason));
+            gameState.EndGame();
         }
 
+        internal void SetPresident(ServerResponse response, Player president)
+        {
+            gameState.SetPresident(president);
+            gameState.SetChancellor(null);
+            response.AddObject(new NetworkPlayerObject(ServerCommands.AnnouncePresident, president));
+        }
         private void GetNextPresident(ServerResponse response)
         {
             var president = gameState.GetNextPresident();
-            gameState.SetPresident(president);
-            gameState.SetChancellor(null);
             SetPresident(response, president);
         }
         private void AnnounceVotes(ServerResponse response)
@@ -127,8 +144,27 @@ namespace SecretHitler.Networking
             bool passed = gameState.VotePassed();
             response.AddObject(new NetworkVoteResultObject(ServerCommands.AnnounceVotes, gameState.GetVotes(), passed ? Vote.Ja : Vote.Nein));
             gameState.PreviousGovernmentElected = passed;
+            if (gameState.ElectionTracker == 3)
+            {
+                response.AddObject(new NetworkObject(ServerCommands.ResetElectionTracker));
+                gameState.ResetElectionTracker();
+            }
             if (passed)
             {
+                if (gameState.ElectionTracker != 0)
+                {
+                    response.AddObject(new NetworkObject(ServerCommands.ResetElectionTracker));
+                    gameState.ResetElectionTracker();
+                }
+                if (gameState.FascistsCardsPlayed >= 3)
+                {
+                    if (gameState.Chancellor.Hand.Role.IsHitler)
+                    {
+                        AnnounceWin(response, true, "Hitler is chancellor");
+                        return; //no point in doing the rest, the fascists have won anyway
+                    }
+                    response.AddObject(new NetworkPlayerObject(ServerCommands.NotHitler, gameState.Chancellor));
+                }
                 var cards = gameState.GetPolicyCards();
                 gameState.CurrentlyPicked = cards;
                 response.AddObject(new NetworkByteObject(ServerCommands.PolicyCardsDrawn, 3));
@@ -136,22 +172,63 @@ namespace SecretHitler.Networking
                 gameState.PresidentPicking = true;
             }
             else
+            {
+                gameState.IncrementElectionTracker();
+                response.AddObject(new NetworkObject(ServerCommands.IncrementElectionTracker));
+                if (gameState.ElectionTracker == 3)
+                {
+                    //gameState.ResetElectionTracker();
+                    response.AddObject(new NetworkByteObject(ServerCommands.PolicyCardsDrawn, 1));
+                    var card = gameState.GetPolicyCards(1);
+                    //PlayPolicy(card[0], response);
+                    response.AddObject(new NetworkCardObject(ServerCommands.CardPlayed, card));
+                    gameState.PlayPolicy(card[0]);
+                    if (CheckCardPlayedWinCondition(response))
+                        return;
+                }
                 GetNextPresident(response);
+            }
+        }
+        private bool CheckCardPlayedWinCondition(ServerResponse response)
+        {
+
+            if (gameState.LiberalCardsPlayed == 5)
+            {
+                AnnounceWin(response, false, "The liberals have played 5 liberal policies");
+                return true;
+            }
+            if (gameState.FascistsCardsPlayed == 6)
+            {
+                AnnounceWin(response, true, "The fascists have played 6 fascist policies");
+                return true;
+            }
+            return false;
         }
         private void PlayPolicy(CardPolicy policy, ServerResponse response)
         {
             gameState.PlayPolicy(policy);
             response.AddObject(new NetworkCardObject(ServerCommands.ChancellorDiscarded));
             response.AddObject(new NetworkCardObject(ServerCommands.CardPlayed, policy));
-            if(policy is CardPolicyLiberal || gameState.FascistActions[gameState.FascistsCardsPlayed - 1] == null)
-                GetNextPresident(response);
+            if(policy is CardPolicyLiberal)
+            {
+                if (!CheckCardPlayedWinCondition(response))
+                    GetNextPresident(response);
+            }
             else
             {
-                var fascistId = gameState.FascistsCardsPlayed - 1;
-                var fascistAction = gameState.FascistActions[fascistId];
-                response.AddObject(new NetworkByteObject(ServerCommands.PresidentAction, (byte)fascistId));
-                response.AddObject(fascistAction.GetPresidentObject(gameState), gameState.President);
-                gameState.AwaitingPresidentAction = fascistAction.ServerResponse;
+                if (!CheckCardPlayedWinCondition(response))
+                {
+                    if (gameState.FascistActions[gameState.FascistsCardsPlayed - 1] != null)
+                    {
+                        var fascistId = gameState.FascistsCardsPlayed - 1;
+                        var fascistAction = gameState.FascistActions[fascistId];
+                        response.AddObject(new NetworkByteObject(ServerCommands.PresidentAction, (byte)fascistId));
+                        response.AddObject(fascistAction.GetPresidentObject(gameState), gameState.President);
+                        gameState.AwaitingPresidentAction = fascistAction.ServerResponse;
+                    }
+                    else
+                        GetNextPresident(response);
+                }
             }
 
         }

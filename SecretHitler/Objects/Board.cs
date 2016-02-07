@@ -125,6 +125,13 @@ namespace SecretHitler.Objects
             if (LiberalCardCutout != null)
                 for (var i = 0; i < liberalCards.Length && liberalCards[i] != null; i++)
                     g.DrawImage(LiberalCardCutout, liberalCards[i].Location);
+            { //election tracker
+                int yOffset = 35;
+                int xOffset = 150;
+                int spacing = 42;
+                g.FillEllipse(Brushes.Yellow, Location.X + xOffset + gameState.ElectionTracker * spacing, Location.Y + Size.Height - yOffset, 15, 15);
+            }
+            g.DrawString(gameState.ElectionTracker.ToString(), SystemFonts.DefaultFont, Brushes.Black, Location.X, Location.Y);
         }
 
         public override void AddCard(CardPolicyLiberal card)

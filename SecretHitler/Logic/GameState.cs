@@ -34,6 +34,8 @@ namespace SecretHitler.Logic
         public FascistAction[] FascistActions { get; internal set; }
         public CardPolicyLiberal[] PlayedLiberalCards { get; private set; }
         public CardPolicyFascist[] PlayedFascistCards { get; private set; }
+        public int ElectionTracker { get; private set; } = 0;
+        public bool PlayingGame { get; protected set; }
         public GameState()
         {
             SeatedPlayers = new Player[10];
@@ -41,6 +43,41 @@ namespace SecretHitler.Logic
             DrawPile = new Deck<CardPolicy>(17);
             PlayedLiberalCards = new CardPolicyLiberal[5];
             PlayedFascistCards = new CardPolicyFascist[6];
+        }
+
+
+        internal virtual void StartGame()
+        {
+            if (PlayingGame) return;
+            PlayingGame = true;
+            PreviousGovernmentElected = false;
+            //set all previous roles to null
+            SetPresident(null);
+            SetChancellor(null);
+            SetPreviousPresident(null);
+            SetPreviousChancellor(null);
+
+            //Returns all cards to the drawpile stack
+            for (var i = LiberalCardsPlayed; i > 0; i--)
+            {
+                DrawPile.AddCard(PlayedLiberalCards[i - 1]);
+                PlayedLiberalCards[i - 1] = null;
+            }
+            LiberalCardsPlayed = 0;
+            for (var i = FascistsCardsPlayed; i > 0; i--)
+            {
+                DrawPile.AddCard(PlayedFascistCards[i - 1]);
+                PlayedFascistCards[i - 1] = null;
+            }
+            FascistsCardsPlayed = 0;
+            while (DiscardPile.CardsRemaining != 0)
+                DrawPile.AddCard(DiscardPile.GetCard());
+
+            for (var i = 0; i < SeatedPlayers.Length; i++)
+                if (SeatedPlayers[i] != null)
+                    SeatedPlayers[i].Dead = false;
+
+            DrawPile.Shuffle();
         }
 
         internal virtual void SetChancellor(Player player)
@@ -109,6 +146,18 @@ namespace SecretHitler.Logic
         public virtual void KillPlayer(Player player)
         {
             player.Dead = true;
+        }
+
+        public virtual void IncrementElectionTracker()
+        {
+            if (ElectionTracker == 3)
+                throw new InvalidOperationException("Can't increment beyond 3");
+            ElectionTracker++;
+        }
+
+        public virtual void ResetElectionTracker()
+        {
+            ElectionTracker = 0;
         }
     }
 

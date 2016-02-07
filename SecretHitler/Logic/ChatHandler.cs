@@ -70,6 +70,12 @@ namespace SecretHitler.Logic
                     var chancellorObj = obj as NetworkPlayerObject;
                     SetStatusMessage($"{state.President.Name} has chosen {chancellorObj.Player.Name} as his/her chancellor");
                     break;
+                case ServerCommands.LiberalWin:
+                    SetStatusMessage($"The liberal party has won! {obj.Message}");
+                    break;
+                case ServerCommands.FascistWin:
+                    SetStatusMessage($"The fascist party has won! {obj.Message}"); 
+                    break;
             }
         }
 

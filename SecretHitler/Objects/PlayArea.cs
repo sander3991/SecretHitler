@@ -53,6 +53,7 @@ namespace SecretHitler.Objects
         protected Player Player { get { return State.SeatedPlayers[ID]; } }
         protected ClientGameState State { get; }
 
+        private CardNotHitler notHitler;
         private CardBallot votedCard;
         private RotateType rotateType;
         private bool isHovering = false;
@@ -115,6 +116,13 @@ namespace SecretHitler.Objects
             votedCard = card;
         }
 
+        public void SetNotHitler(CardNotHitler card)
+        {
+            if(card != null)
+                card.Location = new Point(Location.X + Size.Width / 2 - Card.DEFAULTCARDSIZE.Width / 2, Location.Y - Card.DEFAULTCARDSIZE.Height / 2);
+            notHitler = card;
+        }
+
         public override void Draw(Graphics g)
         {
             if (Player != null)
@@ -127,6 +135,7 @@ namespace SecretHitler.Objects
                 if (isHovering && OnClick != null)
                     g.FillRectangle(BackgroundBrush, DrawLocation);
                 DrawPlayerName(g);
+                notHitler?.Draw(g);
                 if (Player.Dead)
                     g.DrawImageUnscaled(DEATH, new Point(Location.X + (Size.Width / 2) - 50, Location.Y));
                 DrawPlayerHand(g);
