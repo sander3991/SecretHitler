@@ -40,6 +40,8 @@ namespace SecretHitler.Networking
             RegisterDecoder(RevealMembership, newPlayerDecoder);
             RegisterDecoder(KillPlayer, playerDecoder);
             RegisterDecoder(NotHitler, playerDecoder);
+            RegisterDecoder(PresidentRequestVetoAllowed, boolDecoder);
+            RegisterDecoder(AnnounceVetoResult, boolDecoder);
 
             RegisterDecoder(PresidentAction, byteDecoder);
             RegisterDecoder(PresidentDoingAction, playerDecoder);

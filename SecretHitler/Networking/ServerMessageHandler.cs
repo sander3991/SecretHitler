@@ -57,16 +57,19 @@ namespace SecretHitler.Networking
                     }
                     break;
                 case ServerCommands.PresidentPolicyCardPicked:
+                    const int vetoPowerUnlocked  = 5;
                     if (player != gameState.President || !gameState.PresidentPicking) break;
                     gameState.PresidentPicking = false;
                     var pickPolicyCard = request as NetworkByteObject;
                     gameState.DiscardPile.AddCard(gameState.CurrentlyPicked[pickPolicyCard.Value]);
                     response.AddObject(new NetworkObject(ServerCommands.PresidentDiscarded));
-                    var chancellorCards = new CardPolicy[2];
+                    var chancellorCards = new CardPolicy[gameState.FascistsCardsPlayed >= vetoPowerUnlocked ? 3 : 2];
                     var j = 0;
                     for (var i = 0; i < 3; i++)
                         if (i != pickPolicyCard.Value)
                             chancellorCards[j++] = gameState.CurrentlyPicked[i];
+                    if (gameState.FascistsCardsPlayed == vetoPowerUnlocked)
+                        chancellorCards[2] = new CardPolicyVeto();
                     gameState.CurrentlyPicked = chancellorCards;
                     response.AddObject(new NetworkCardObject(ServerCommands.ChancellorPickPolicyCard, chancellorCards), gameState.Chancellor);
                     gameState.ChancellorPicking = true;
@@ -114,6 +117,38 @@ namespace SecretHitler.Networking
                     response.AddObject(new NetworkNewPlayerObject(ServerCommands.RevealMembership, investigate.Player, investigate.Player.Hand.Membership.IsFascist ? 1 : 0), player);
                     GetNextPresident(response);
                     break;
+                case ServerCommands.ChancellorRequestVeto:
+                    if (player != gameState.Chancellor) break;
+                    response.AddObject(new NetworkObject(ServerCommands.PresidentConfirmVeto));
+                    break;
+                case ServerCommands.PresidentRequestVetoAllowed:
+                    if (player != gameState.President) break;
+                    var vetoAllowed = (request as NetworkBoolObject).Value;
+                    response.AddObject(new NetworkBoolObject(ServerCommands.AnnounceVetoResult, vetoAllowed));
+                    if (vetoAllowed)
+                    {
+                        var currentlyPicked = gameState.CurrentlyPicked;
+
+                        //discard all the cards
+                        gameState.CurrentlyPicked = null;
+                        for (var i = 0; i < currentlyPicked.Length - 1; i++) //the last card is the veto card
+                        {
+                            gameState.DiscardPile.AddCard(currentlyPicked[i]);
+                            response.AddObject(new NetworkCardObject(ServerCommands.ChancellorDiscarded));
+                        }
+                        //Increment the election tracker, veto passed
+                        IncrementElectionTracker(response);
+                        //The next president is elected because veto ends the current government
+                        GetNextPresident(response);
+                    }
+                    else
+                    {
+                        var newArr = new CardPolicy[gameState.CurrentlyPicked.Length - 1];
+                        for (var i = 0; i < gameState.CurrentlyPicked.Length - 1; i++)
+                            newArr[i] = gameState.CurrentlyPicked[i];
+                        gameState.CurrentlyPicked = newArr;
+                    }
+                    break;
             }
             server.SendResponse(response);
             OnReceive?.Invoke(player, request);
@@ -138,6 +173,22 @@ namespace SecretHitler.Networking
         {
             var president = gameState.GetNextPresident();
             SetPresident(response, president);
+        }
+        private bool IncrementElectionTracker(ServerResponse response)
+        {
+            gameState.IncrementElectionTracker();
+            response.AddObject(new NetworkObject(ServerCommands.IncrementElectionTracker));
+            if (gameState.ElectionTracker == 3)
+            {
+                //gameState.ResetElectionTracker();
+                response.AddObject(new NetworkByteObject(ServerCommands.PolicyCardsDrawn, 1));
+                var card = gameState.GetPolicyCards(1);
+                //PlayPolicy(card[0], response);
+                response.AddObject(new NetworkCardObject(ServerCommands.CardPlayed, card));
+                gameState.PlayPolicy(card[0]);
+                return CheckCardPlayedWinCondition(response);
+            }
+            return false;
         }
         private void AnnounceVotes(ServerResponse response)
         {
@@ -173,19 +224,7 @@ namespace SecretHitler.Networking
             }
             else
             {
-                gameState.IncrementElectionTracker();
-                response.AddObject(new NetworkObject(ServerCommands.IncrementElectionTracker));
-                if (gameState.ElectionTracker == 3)
-                {
-                    //gameState.ResetElectionTracker();
-                    response.AddObject(new NetworkByteObject(ServerCommands.PolicyCardsDrawn, 1));
-                    var card = gameState.GetPolicyCards(1);
-                    //PlayPolicy(card[0], response);
-                    response.AddObject(new NetworkCardObject(ServerCommands.CardPlayed, card));
-                    gameState.PlayPolicy(card[0]);
-                    if (CheckCardPlayedWinCondition(response))
-                        return;
-                }
+                if (IncrementElectionTracker(response)) return;
                 GetNextPresident(response);
             }
         }

@@ -142,6 +142,17 @@ namespace SecretHitler.Networking
             new SendMsgHandler(new NetworkPlayerObject(ServerCommands.PresidentActionKillResponse, player), this);
         }
 
+
+        internal void RequestVeto()
+        {
+            new SendMsgHandler(new NetworkObject(ServerCommands.ChancellorRequestVeto), this);
+        }
+
+        internal void ConfirmVeto(bool obj)
+        {
+            new SendMsgHandler(new NetworkBoolObject(ServerCommands.PresidentRequestVetoAllowed, obj), this);
+        }
+
         public class ReceiveMsgHandler : BackgroundWorker
         {
             private Client client;

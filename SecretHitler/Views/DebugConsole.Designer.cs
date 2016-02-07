@@ -51,6 +51,9 @@
             this.investigatePlayerBtn = new System.Windows.Forms.Button();
             this.roleLabel = new System.Windows.Forms.Label();
             this.membershipLabel = new System.Windows.Forms.Label();
+            this.vetoBtnYes = new System.Windows.Forms.Button();
+            this.vetoBtnNo = new System.Windows.Forms.Button();
+            this.startBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // playerButton1
@@ -212,7 +215,6 @@
             this.policyCard1.TabIndex = 14;
             this.policyCard1.Text = "Fascist";
             this.policyCard1.UseVisualStyleBackColor = true;
-            this.policyCard1.Click += new System.EventHandler(this.PickPolicyCard);
             // 
             // policyCard2
             // 
@@ -223,7 +225,6 @@
             this.policyCard2.TabIndex = 15;
             this.policyCard2.Text = "Fascist";
             this.policyCard2.UseVisualStyleBackColor = true;
-            this.policyCard2.Click += new System.EventHandler(this.PickPolicyCard);
             // 
             // policyCard3
             // 
@@ -234,7 +235,6 @@
             this.policyCard3.TabIndex = 16;
             this.policyCard3.Text = "Fascist";
             this.policyCard3.UseVisualStyleBackColor = true;
-            this.policyCard3.Click += new System.EventHandler(this.PickPolicyCard);
             // 
             // confirmReadBtn
             // 
@@ -294,11 +294,44 @@
             this.membershipLabel.TabIndex = 22;
             this.membershipLabel.Text = "Membership Label";
             // 
+            // vetoBtnYes
+            // 
+            this.vetoBtnYes.Location = new System.Drawing.Point(13, 206);
+            this.vetoBtnYes.Name = "vetoBtnYes";
+            this.vetoBtnYes.Size = new System.Drawing.Size(75, 23);
+            this.vetoBtnYes.TabIndex = 23;
+            this.vetoBtnYes.Text = "Veto Yes";
+            this.vetoBtnYes.UseVisualStyleBackColor = true;
+            this.vetoBtnYes.Click += new System.EventHandler(this.vetoBtnYes_Click);
+            // 
+            // vetoBtnNo
+            // 
+            this.vetoBtnNo.Location = new System.Drawing.Point(94, 205);
+            this.vetoBtnNo.Name = "vetoBtnNo";
+            this.vetoBtnNo.Size = new System.Drawing.Size(75, 23);
+            this.vetoBtnNo.TabIndex = 24;
+            this.vetoBtnNo.Text = "Veto No";
+            this.vetoBtnNo.UseVisualStyleBackColor = true;
+            this.vetoBtnNo.Click += new System.EventHandler(this.vetoBtnNo_Click);
+            // 
+            // startBtn
+            // 
+            this.startBtn.Location = new System.Drawing.Point(13, 250);
+            this.startBtn.Name = "startBtn";
+            this.startBtn.Size = new System.Drawing.Size(75, 23);
+            this.startBtn.TabIndex = 25;
+            this.startBtn.Text = "Start Game";
+            this.startBtn.UseVisualStyleBackColor = true;
+            this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
+            // 
             // DebugConsole
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(629, 446);
+            this.Controls.Add(this.startBtn);
+            this.Controls.Add(this.vetoBtnNo);
+            this.Controls.Add(this.vetoBtnYes);
             this.Controls.Add(this.membershipLabel);
             this.Controls.Add(this.roleLabel);
             this.Controls.Add(this.investigatePlayerBtn);
@@ -354,5 +387,8 @@
         private System.Windows.Forms.Button investigatePlayerBtn;
         private System.Windows.Forms.Label roleLabel;
         private System.Windows.Forms.Label membershipLabel;
+        private System.Windows.Forms.Button vetoBtnYes;
+        private System.Windows.Forms.Button vetoBtnNo;
+        private System.Windows.Forms.Button startBtn;
     }
 }

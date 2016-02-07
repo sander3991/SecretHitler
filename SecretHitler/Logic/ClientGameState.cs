@@ -91,9 +91,7 @@ namespace SecretHitler.Logic
                     SetChancellor(null);
                     PreviousGovernmentElected = false;
                     if (President == Me)
-                        PickPlayerAction(Client.ChooseChancellor, MayElectPlayer, (Player player) => Window.SetPlayerMessage($"You can't pick {player.Name} as your chancellor. Pick someone else!"));
-                    else
-                        Window.SetPlayerMessage($"Wait for {President.Name} to pick his/her chancellor.");
+                        PickPlayerAction(Client.ChooseChancellor);
                     break;
                 case AnnounceChancellor:
                     SetChancellor((obj as NetworkPlayerObject).Player);
@@ -173,7 +171,26 @@ namespace SecretHitler.Logic
                 case NotHitler:
                     (obj as NetworkPlayerObject).Player.PlayArea.SetNotHitler(new CardNotHitler());
                     break;
+                case PresidentConfirmVeto:
+                    if (President == Me)
+                        PickTarotCard(Client.ConfirmVeto);
+                    break;
+                case AnnounceVetoResult:
+                    var result = (obj as NetworkBoolObject).Value;
+                    if(Me == Chancellor)
+                    {
+                        if (result)
+                            Me.PlayArea.RemovePolicyCards();
+                        else
+                            Me.PlayArea.RebindPolicyCards();
+                    }
+                    break;
             }
+        }
+
+        internal void RequestVeto()
+        {
+            Client.RequestVeto();
         }
 
         private void ClearVotes()

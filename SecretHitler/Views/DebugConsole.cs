@@ -48,7 +48,9 @@ namespace SecretHitler.Views
                 playerButtons[i].Tag = serverGameState.SeatedPlayers[i];
             }
             for (var i = 0; i < policyButtons.Length; i++)
+            {
                 policyButtons[i].Tag = (byte)i;
+            }
         }
         private void PlayerButtonClick(object sender, EventArgs args)
         {
@@ -93,14 +95,31 @@ namespace SecretHitler.Views
                 (Player player) => SendToServer(new NetworkPlayerObject(ServerCommands.AnnounceChancellor, player));
         }
 
+        private void UnsubPolicyCard(Button btn)
+        {
+            btn.Enabled = false;
+            if (btn.Text == "Veto")
+                btn.Click -= PickVeto;
+            else
+                btn.Click -= PickPolicyCard;
+        }
+
         private void PickPolicyCard(object sender, EventArgs e)
         {
             if (selectedPlayer == null) return;
             var btn = sender as Button;
-            ServerCommands command = serverGameState.CurrentlyPicked.Length == 3 ? ServerCommands.PresidentPolicyCardPicked : ServerCommands.ChancellorPolicyCardPicked;
+            ServerCommands command = serverGameState.Chancellor == selectedPlayer ? ServerCommands.ChancellorPolicyCardPicked : ServerCommands.PresidentPolicyCardPicked;
             SendToServer(new NetworkByteObject(command, (byte)btn.Tag));
             foreach (var policyBtn in policyButtons)
-                policyBtn.Enabled = false;
+                UnsubPolicyCard(policyBtn);
+
+        }
+
+        private void PickVeto(object sender, EventArgs e)
+        {
+            foreach(var policyBtn in policyButtons)
+                UnsubPolicyCard(policyBtn);
+            SendToServer(new NetworkObject(ServerCommands.ChancellorRequestVeto));
         }
 
         private void getPolicyChoice_Click(object sender, EventArgs e)
@@ -109,7 +128,22 @@ namespace SecretHitler.Views
             for (var i = 0; i < serverGameState.CurrentlyPicked.Length; i++)
             {
                 policyButtons[i].Enabled = true;
-                policyButtons[i].Text = serverGameState.CurrentlyPicked[i] is CardPolicyFascist ? "Fascist" : "Liberal";
+                if (serverGameState.CurrentlyPicked[i] is CardPolicyFascist)
+                {
+                    policyButtons[i].Text = "Fascist";
+                    policyButtons[i].Click += PickPolicyCard;
+                }
+                else if (serverGameState.CurrentlyPicked[i] is CardPolicyLiberal)
+                {
+                    policyButtons[i].Text = "Liberal";
+                    policyButtons[i].Click += PickPolicyCard;
+                }
+                else
+                {
+                    policyButtons[i].Text = "Veto";
+                    policyButtons[i].Click += PickVeto;
+                }
+
             }
         }
 
@@ -124,26 +158,33 @@ namespace SecretHitler.Views
         }
 
         private void confirmReadBtn_Click(object sender, EventArgs e)
-        {
-            server.ServerMessageHandler.HandleMessage(new NetworkObject(ServerCommands.PresidentActionExamineResponse), null, selectedPlayer);
-        }
+            => server.ServerMessageHandler.HandleMessage(new NetworkObject(ServerCommands.PresidentActionExamineResponse), null, selectedPlayer);
 
         private void confirmKillPlayer_Click(object sender, EventArgs e)
-        {
-            awaitingPlayerSelection =
+            => awaitingPlayerSelection =
                 (Player player) => server.ServerMessageHandler.HandleMessage(new NetworkPlayerObject(ServerCommands.PresidentActionKillResponse, player), null, selectedPlayer);
-        }
 
         private void choosePresidentBtn_Click(object sender, EventArgs e)
-        {
-            awaitingPlayerSelection =
+            => awaitingPlayerSelection =
                 (Player player) => server.ServerMessageHandler.HandleMessage(new NetworkPlayerObject(ServerCommands.PresidentActionChoosePresidentResponse, player), null, selectedPlayer);
-        }
 
         private void investigatePlayerBtn_Click(object sender, EventArgs e)
         {
             awaitingPlayerSelection =
                 (Player player) => server.ServerMessageHandler.HandleMessage(new NetworkPlayerObject(ServerCommands.PresidentActionInvestigatePresidentResponse, player), null, selectedPlayer);
+        }
+        private void Veto(bool yes)
+            => server.ServerMessageHandler.HandleMessage(new NetworkBoolObject(ServerCommands.PresidentRequestVetoAllowed, yes), null, selectedPlayer);
+        private void vetoBtnYes_Click(object sender, EventArgs e)
+            => Veto(true);
+
+        private void vetoBtnNo_Click(object sender, EventArgs e)
+            => Veto(false);
+
+        private void startBtn_Click(object sender, EventArgs e)
+        {
+            server.GameState.EndGame();
+            server.GameState.StartGame();
         }
     }
 }

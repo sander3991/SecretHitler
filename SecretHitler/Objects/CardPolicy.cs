@@ -67,4 +67,11 @@ namespace SecretHitler.Objects
             }
         }
     }
+
+    public class CardPolicyVeto : CardPolicy
+    {
+        private static Bitmap FRONT = Properties.Resources.policy_cards_high_contrast.FromSprite(DEFAULTCARDSIZE, 2, 2, 2);
+        public override Bitmap Front { get { return FRONT; } }
+        public override bool IsFascist { get { return false; } }
+    }
 }

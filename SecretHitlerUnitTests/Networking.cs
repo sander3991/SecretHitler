@@ -36,7 +36,7 @@ namespace SecretHitlerUnitTests
         [TestMethod]
         public void NetworkCardObject()
         {
-            var networkObj = new NetworkCardObject(ServerCommands.AnnounceCard, new CardBallotNo(), new CardBallotYes());
+            var networkObj = new NetworkCardObject(ServerCommands.AnnounceCard, new CardBallotNo(), new CardBallotYes(), new CardPolicyVeto(), new CardPolicyLiberal());
             var decoder = new NetworkCardObject.CardObjectReader();
             var bytes = decoder.GenerateByteStream(networkObj);
             var generatedObj = decoder.GenerateObject(bytes, false);

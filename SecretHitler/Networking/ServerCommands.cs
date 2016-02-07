@@ -34,7 +34,11 @@
         NotHitler = 0x1E,
         IncrementElectionTracker = 0x1F,
         ResetElectionTracker = 0x20,
-        ThePeopleSpoken = 0x21,
+
+        ChancellorRequestVeto = 0x21, //Chancellor to server to request veto
+        PresidentConfirmVeto = 0x22, //Server to All to notify of a veto request
+        PresidentRequestVetoAllowed = 0x23, //President to Server to notify if approved
+        AnnounceVetoResult = 0x24, //Server to all to notify result of veto
 
         PresidentActionExamine = 0x31,
         PresidentActionKill = 0x32,

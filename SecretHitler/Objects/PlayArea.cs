@@ -185,14 +185,39 @@ namespace SecretHitler.Objects
             }
             pickPolicyCards = cards;
         }
-
+        public void RebindPolicyCards()
+        {
+            foreach (var card in pickPolicyCards)
+                card.OnClick += PickPolicyCard;
+        }
+        internal void RemovePolicyCards()
+        {
+            pickPolicyCards = null;
+        }
         private void PickPolicyCard(Card obj)
         {
             var policyCards = pickPolicyCards;
-            pickPolicyCards = null;
             for (var i = 0; i < policyCards.Length; i++)
                 if(obj == policyCards[i])
-                    State.ReturnPolicyCards(i);
+                {
+                    if (policyCards[i].GetType() == typeof(CardPolicyVeto))
+                    {
+                        var j = 0;
+                        pickPolicyCards = new CardPolicy[policyCards.Length - 1];
+                        for (var i2 = 0; i2 < policyCards.Length; i2++)
+                            if (i2 != i)
+                            {
+                                pickPolicyCards[j++] = policyCards[i2];
+                                policyCards[i2].OnClick -= PickPolicyCard;
+                            }
+                        State.RequestVeto();
+                    }
+                    else
+                    {
+                        State.ReturnPolicyCards(i);
+                        pickPolicyCards = null;
+                    }
+                }
         }
 
         internal void ResetState()

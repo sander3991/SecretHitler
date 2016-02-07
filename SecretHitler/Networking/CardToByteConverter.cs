@@ -40,7 +40,7 @@ namespace SecretHitler.Networking
                     add = (card as CardMembership).IsFascist ? (byte)1 : (byte)0;
                     break;
                 case CardType.Policy:
-                    add = (card as CardPolicy).IsFascist ? (byte)1 : (byte)0;
+                    add = card is CardPolicyVeto ? (byte)2 : (card as CardPolicy).IsFascist ? (byte)1 : (byte)0;
                     break;
                 case CardType.SecretRole:
                     var secretRole = card as CardSecretRole;
@@ -67,7 +67,7 @@ namespace SecretHitler.Networking
                 case CardType.NotHitler:
                     return new CardNotHitler();
                 case CardType.Policy:
-                    return add == 1 ? (CardPolicy)new CardPolicyFascist() : new CardPolicyLiberal();
+                    return add == 2 ? new CardPolicyVeto() : add == 1 ? (CardPolicy)new CardPolicyFascist() : new CardPolicyLiberal();
                 case CardType.SecretRole:
                     var fascist = (add & 1) == 1;
                     var ID = add >> 1;

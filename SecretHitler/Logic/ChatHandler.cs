@@ -65,10 +65,49 @@ namespace SecretHitler.Logic
                 case ServerCommands.AnnouncePresident:
                     var playerObj = obj as NetworkPlayerObject;
                     SetStatusMessage($"{playerObj.Player.Name} is now president");
+                    if (playerObj.Player == state.Me)
+                        SetInstruction("Pick your chancellor");
                     break;
                 case ServerCommands.AnnounceChancellor:
                     var chancellorObj = obj as NetworkPlayerObject;
-                    SetStatusMessage($"{state.President.Name} has chosen {chancellorObj.Player.Name} as his/her chancellor");
+                    SetStatusMessage($"{state.President.Name} has chosen {chancellorObj.Player.Name} as his/her chancellor{Environment.NewLine}Waiting for votes");
+                    if (!state.Me.Dead)
+                        SetInstruction($"Cast your vote");
+                    else
+                        SetInstruction(null);
+                    break;
+                case ServerCommands.PresidentAction:
+                    SetStatusMessage(string.Format(state.FascistActions[(obj as NetworkByteObject).Value].Description, state.President.Name));
+                    break;
+                case ServerCommands.PlayerVoted:
+                    if ((obj as NetworkPlayerObject).Player == state.Me)
+                        SetInstruction(null);
+                    break;
+                case ServerCommands.AnnounceVotes:
+                    if ((obj as NetworkVoteResultObject).Passed == Vote.Ja)
+                        SetStatusMessage("The vote has passed");
+                    else
+                        SetStatusMessage("The vote has not passed");
+                    break;
+                case ServerCommands.PresidentPickPolicyCard:
+                case ServerCommands.ChancellorPickPolicyCard:
+                    SetInstruction("Pick the Policy you want to discard");
+                    break;
+                case ServerCommands.PresidentDiscarded:
+                case ServerCommands.ChancellorDiscarded:
+                    SetInstruction(null);
+                    break;
+                case ServerCommands.PresidentActionKill:
+                    SetInstruction("Choose the player who you would like to kill.");
+                    break;
+                case ServerCommands.PresidentActionExamine:
+                    SetInstruction("Pick a card if you're done examining the cards.");
+                    break;
+                case ServerCommands.PresidentActionInvestigate:
+                    SetInstruction("Choose the player whose membership you want to see.");
+                    break;
+                case ServerCommands.PresidentActionChoosePresident:
+                    SetInstruction("Choose the next president");
                     break;
                 case ServerCommands.LiberalWin:
                     SetStatusMessage($"The liberal party has won! {obj.Message}");
@@ -76,9 +115,19 @@ namespace SecretHitler.Logic
                 case ServerCommands.FascistWin:
                     SetStatusMessage($"The fascist party has won! {obj.Message}"); 
                     break;
+                case ServerCommands.PresidentConfirmVeto:
+                    SetStatusMessage($"{state.Chancellor.Name} has requested a veto.");
+                    if (state.President == state.Me)
+                        SetInstruction("Please pick Ja or Nein if you want to agree with the veto.");
+                    break;
             }
         }
-
+        private void SetInstruction(string txt)
+        {
+            state.Window.SetPlayerMessage(txt);
+            if(txt != null)
+                MessageHistory.Instance.AddHistory($"INSTRUCTION: {txt}");
+        }
         private void SetStatusMessage(string txt)
         {
             state.Window.SetStatusText(txt);
